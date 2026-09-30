@@ -119,14 +119,11 @@ export function signpost(text, { color = '#fff8e7', ink = '#17324d', arrow = 0, 
       ctx.fillRect(0, 0, w, h);
     }
   });
-  const board = new THREE.Mesh(
-    new THREE.BoxGeometry(width, width * 0.28, 0.1),
-    [0, 0, 0, 0, 1, 1].map((i) => (i ? new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }) : new THREE.MeshStandardMaterial({ color: 0xb7793f }))),
-  );
-  board.position.y = 1.6;
-  board.castShadow = true;
-  g.add(board);
-  g.userData.keep = true;
+  const bh = width * 0.28;
+  g.add(box(width, bh, 0.1, 0xb7793f, 0, 1.6, 0));
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(width - 0.08, bh - 0.08), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }));
+  face.position.set(0, 1.6, 0.056);
+  g.add(face);
   return g;
 }
 
@@ -149,7 +146,6 @@ export function stall({ awning = '#ef4444', counter = 0xb7793f, w = 3.2, d = 2 }
   roof.position.set(0, 2.4, 0.1);
   roof.rotation.x = -0.18;
   roof.castShadow = true;
-  roof.userData.keep = true;
   g.add(roof);
   g.add(box(w - 0.3, 0.12, d - 0.6, 0xa0703f, 0, 0.12, -0.2));
   return g;
@@ -198,7 +194,6 @@ export function stoneArch() {
   lower.position.y = 1.9;
   const glow = new THREE.Group();
   glow.add(portal, lower);
-  glow.userData.keep = true;
   g.add(glow);
   return { group: g, glow, portalMat };
 }

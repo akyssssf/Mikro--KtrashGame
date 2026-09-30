@@ -50,7 +50,7 @@ export function group(...children) {
 }
 
 // Gabungkan semua mesh statis di dalam root menjadi satu mesh per "batch".
-// Mesh dengan userData.keep, tekstur, atau transparansi dibiarkan apa adanya.
+// Mesh bertekstur atau transparan dibiarkan apa adanya.
 // userData.batch = 'foliage' dll. memisahkan batch agar warnanya bisa diwarnai ulang.
 export function bake(root, { batchMaterials = {} } = {}) {
   root.updateMatrixWorld(true);
@@ -58,7 +58,7 @@ export function bake(root, { batchMaterials = {} } = {}) {
   const buckets = new Map();
   const toRemove = [];
   root.traverse((o) => {
-    if (!o.isMesh || o.isInstancedMesh || hasKeepAncestor(o, root)) return;
+    if (!o.isMesh || o.isInstancedMesh) return;
     const m = o.material;
     if (Array.isArray(m) || m.map || m.transparent) return;
     const batch = findBatch(o, root);
@@ -98,11 +98,6 @@ export function bake(root, { batchMaterials = {} } = {}) {
 function findBatch(o, root) {
   for (let p = o; p && p !== root.parent; p = p.parent) if (p.userData.batch) return p.userData.batch;
   return 'static';
-}
-
-function hasKeepAncestor(o, root) {
-  for (let p = o; p && p !== root.parent; p = p.parent) if (p.userData.keep) return true;
-  return false;
 }
 
 export function canvasTexture(width, height, draw) {

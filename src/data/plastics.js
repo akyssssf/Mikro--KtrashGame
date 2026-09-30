@@ -4,7 +4,7 @@
 
 export const PLASTICS = {
   1: { code: 1, abbr: 'PET', color: '#2563eb', D: 450, w: 1.0, foodSafe: 'sekali', reuse: false, recycle: true },
-  2: { code: 2, abbr: 'HDPE', color: '#c2620a', D: 100, w: 1.0, foodSafe: 'ya', reuse: true, recycle: true },
+  2: { code: 2, abbr: 'HDPE', color: '#b45309', D: 100, w: 1.0, foodSafe: 'ya', reuse: true, recycle: true },
   3: { code: 3, abbr: 'PVC', color: '#15803d', D: 400, w: 1.5, foodSafe: 'tidak', reuse: false, recycle: false },
   4: { code: 4, abbr: 'LDPE', color: '#0f766e', D: 200, w: 1.0, foodSafe: 'ya', reuse: false, recycle: false },
   5: { code: 5, abbr: 'PP', color: '#dc2626', D: 50, w: 0.8, foodSafe: 'ya', reuse: true, recycle: true },
