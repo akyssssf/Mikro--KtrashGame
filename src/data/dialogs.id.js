@@ -83,6 +83,7 @@ export const TEXT = {
   },
 
   toast: {
+    lensIntro: 'Geser waktunya ke depan, lalu perhatikan apa yang berubah.',
     findCing: 'Cing menunggumu di dekat sumur. Dekati dan tekan E!',
     basketFull: 'Keranjang penuh! Bawa ke Tempat Daur Ulang di desa.',
     newCard: 'Kartu Plastik baru: {abbr} (kode {code})! Tekan K untuk melihat.',
@@ -344,9 +345,6 @@ export const TEXT = {
     pileInfo: [
       { who: 'cing', text: 'Tumpukan daun dan kulit pisang ini menutup jalan. Terlalu banyak untuk dipungut.' },
       { who: 'cing', text: 'Pasang <b>Lensa Waktu</b> di batu bercahaya itu. Kita lihat apa yang terjadi!' },
-    ],
-    lensIntro: [
-      { who: 'cing', text: 'Geser waktunya ke depan, lalu perhatikan apa yang berubah.' },
     ],
     lensSungaiDone: [
       { who: 'cing', text: 'Lihat! Daun dan kulit pisang sudah jadi tanah. Jalannya terbuka!' },

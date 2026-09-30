@@ -11,6 +11,7 @@ import { Player } from './entities/player.js';
 import { Cing } from './entities/cing.js';
 import { createSky } from './world/sky.js';
 import { AreaManager } from './world/areaManager.js';
+import { AREA_IDS } from './world/areaRegistry.js';
 import { Interaction } from './systems/interaction.js';
 import { Quests } from './systems/quests.js';
 import { Inventory } from './systems/inventory.js';
@@ -20,6 +21,11 @@ import { moodOf } from './systems/soilHealth.js';
 import { Hud } from './ui/hud.js';
 import { DialogBox } from './ui/dialog.js';
 import { Codex } from './ui/codex.js';
+import { TimeUI } from './ui/timeUI.js';
+import { SoilSection } from './world/soilSection.js';
+import { anyMicro, captionFor, microLabel, rowsFor, villageAt } from './systems/projection.js';
+import { simulate } from './systems/timeSim.js';
+import { areaDamage } from './systems/soilHealth.js';
 import { basketPanel, menuPanel, Overlay, pausePanel, recyclePanel } from './ui/panels.js';
 import { h } from './ui/dom.js';
 import { t, TEXT } from './data/dialogs.id.js';
@@ -55,6 +61,7 @@ class Game {
       hud: new Hud(this),
       dialog: new DialogBox(this),
       codex: new Codex(this),
+      time: new TimeUI(this),
       overlay: new Overlay('panel'),
       menu: new Overlay('menu-wrap'),
     };
@@ -141,6 +148,25 @@ class Game {
         update: (dt) => {
           this.ui.codex.update(dt);
           if (this.input.consume('pause') || this.input.consume('codex')) this.closeCodex();
+        },
+      },
+      timeGate: {
+        enter: (prev, { opts, pose, onExit }) => {
+          this.ui.hud.setVisible(false);
+          this.timeExit = onExit;
+          this.rig.setOverride({ smoothing: 2.5, ...pose });
+          this.ui.time.start(opts);
+        },
+        exit: () => {
+          this.ui.time.close();
+          this.rig.clearOverride();
+          this.timeExit?.();
+          this.timeExit = null;
+        },
+        update: (dt) => {
+          this.ui.time.update(dt);
+          if (this.input.consume('pause')) this.ui.time.finish();
+          else if (this.input.consume('interact')) this.ui.time.togglePlay();
         },
       },
       pause: {
@@ -294,6 +320,85 @@ class Game {
 
   pause() { if (this.fsm.is('explore')) this.fsm.set('pause'); }
 
+  // Gerbang Waktu (global): proyeksi desa. Dunia asli dikembalikan saat ditutup.
+  openTimeGate() {
+    if (!this.progress.flag('gateIntro')) {
+      this.progress.setFlag('gateIntro');
+      this.say('gateIntro', {}, () => this.openTimeGate());
+      return;
+    }
+    const hub = this.areas.current;
+    const all = AREA_IDS.flatMap((id) => this.soil.projectionEntries(id));
+    this.section ??= new SoilSection();
+    this.section.setEntries([...all].sort((a, b) => Number(b.buried) - Number(a.buried)));
+    let explained = this.progress.flag('microExplained');
+    const opts = {
+      title: t('time.gateTitle'),
+      note: t('time.gateNote'),
+      maxYears: 1000,
+      jumps: [1, 10, 50, 100, 500, 1000],
+      inset: true,
+      playSeconds: 22,
+      onTime: (years) => {
+        const v = villageAt(this.soil, years);
+        hub.overrideHealth = v.health;
+        hub.visuals.setMicro(v.micro / 8);
+        this.section.apply(years, v.health);
+        let note = null;
+        if (!explained && anyMicro(all, years)) {
+          explained = true;
+          this.progress.setFlag('microExplained');
+        }
+        if (explained && anyMicro(all, years)) note = t('time.microExplain');
+        return { health: v.health, micro: microLabel(v.micro), rows: rowsFor(all, years), caption: captionFor(all, years), note };
+      },
+      onClose: () => this.fsm.set('explore'),
+    };
+    this.fsm.set('timeGate', {
+      opts,
+      pose: { focus: new THREE.Vector3(0, 0, -1), distance: 50, pitch: 0.95 },
+      onExit: () => {
+        hub.overrideHealth = null;
+        hub.visuals.setMicro(0);
+      },
+    });
+  }
+
+  // Lensa Waktu (lokal): memajukan waktu sungguhan di lingkaran kecil. targets: [{ typeId, D, organic, apply(years) }]
+  openLens(area, lens, targets, onClose) {
+    const entries = targets.map((x) => ({ ...x, type: x.typeId, w: x.organic ? 0 : x.w, key: x.key, code: x.code }));
+    const base = areaDamage(this.soil.areaInput(area.id));
+    lens.setActive(true);
+    this.audio.whoosh();
+    const opts = {
+      title: t('time.lensTitle'),
+      note: t('time.lensNote'),
+      maxYears: 50,
+      jumps: [1 / 12, 0.5, 1, 10, 50],
+      inset: false,
+      playSeconds: 10,
+      closeLabel: t('time.done'),
+      onTime: (years) => {
+        for (const x of targets) x.apply(years);
+        const sim = simulate(entries, years, { baseDamage: base });
+        return { health: sim.health, micro: microLabel(sim.micro), rows: rowsFor(entries, years), caption: captionFor(entries, years, 'time.lensCaptionStart') };
+      },
+      onClose: (reached) => {
+        this.fsm.set('explore');
+        onClose?.(reached);
+      },
+    };
+    this.fsm.set('timeGate', {
+      opts,
+      pose: { focus: lens.center.clone(), distance: 13, pitch: 0.95 },
+      onExit: () => lens.setActive(false),
+    });
+    if (!this.progress.flag('lensIntro')) {
+      this.progress.setFlag('lensIntro');
+      this.toast(t('toast.lensIntro'), 'info', 4000);
+    }
+  }
+
   toggleMute() {
     this.audio.setMuted(!this.audio.muted);
     this.prefs.muted = this.audio.muted;
@@ -374,6 +479,9 @@ class Game {
 
     this.renderer.info.reset();
     this.renderer.render(this.scene, this.camera);
+    if (this.fsm.is('timeGate') && this.ui.time.opts?.inset && this.section) {
+      this.section.render(this.renderer, this.ui.time.inset.getBoundingClientRect(), this.time);
+    }
     this.#fpsTick(dt);
     inp.endFrame();
     requestAnimationFrame((n) => this.#frame(n));
