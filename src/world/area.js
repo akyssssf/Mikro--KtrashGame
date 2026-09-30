@@ -22,6 +22,7 @@ export class Area {
     this.collision = new CollisionWorld();
     this.interactables = [];
     this.trash = new Map();
+    this.leaving = new Set();
     this.noGrass = [];
     this.buriedGroup = new THREE.Group();
     this.built = false;
@@ -109,6 +110,7 @@ export class Area {
   removeTrash(gid) {
     const trash = this.trash.get(gid);
     this.trash.delete(gid);
+    if (trash) this.leaving.add(trash);
     this.interactables = this.interactables.filter((i) => i.id !== gid);
     if (this.game.areas.current === this) this.game.interaction.setList(this.interactables);
     return trash;
@@ -208,6 +210,10 @@ export class Area {
   update(dt, time) {
     const reduced = this.game.reducedMotion;
     for (const tr of this.trash.values()) tr.update(dt, time);
+    for (const tr of this.leaving) {
+      tr.update(dt, time);
+      if (tr.gone) this.leaving.delete(tr);
+    }
     for (const i of this.interactables) i.update?.(time);
     this.visuals.update(dt, time, reduced);
   }

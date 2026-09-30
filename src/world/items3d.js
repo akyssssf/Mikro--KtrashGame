@@ -5,10 +5,10 @@ import * as THREE from 'three';
 const M = (color, opts = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0, ...opts });
 const clear = (op) => ({ transparent: true, opacity: op, roughness: 0.25 });
 
+// Sampah kecil tidak memberi bayangan (menghemat draw call bayangan).
 function mesh(geo, material, x = 0, y = 0, z = 0) {
   const m = new THREE.Mesh(geo, material);
   m.position.set(x, y, z);
-  m.castShadow = true;
   return m;
 }
 const cyl = (rt, rb, h, mat, x, y, z, seg = 16) => mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat, x, y, z);

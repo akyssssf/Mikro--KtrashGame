@@ -32,7 +32,8 @@ export class Player {
       body.add(pivot);
       return pivot;
     });
-    body.add(cyl(0.3, 0.36, 0.72, 0x2fb35a, 0, 1.08, 0, 9));
+    const torso = cyl(0.3, 0.36, 0.72, 0x2fb35a, 0, 1.08, 0, 9);
+    body.add(torso);
     body.add(box(0.5, 0.12, 0.34, 0xf5f0e1, 0, 1.4, 0.06));
     this.arms = [-1, 1].map((side) => {
       const pivot = new THREE.Group();
@@ -76,7 +77,11 @@ export class Player {
     body.add(net);
     this.net = net;
 
-    g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    // Hanya bagian besar yang memberi bayangan.
+    g.traverse((o) => { if (o.isMesh) o.castShadow = false; });
+    for (const part of [...this.legs, torso, head.children[0], basket.children[0]]) {
+      part.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    }
     const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.45, 16), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.18, depthWrite: false }));
     shadow.rotation.x = -Math.PI / 2;
     shadow.position.y = 0.03;

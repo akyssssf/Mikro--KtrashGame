@@ -22,7 +22,7 @@ export class Cing {
     for (let i = 0; i < SEGMENTS; i++) {
       const r = 0.26 - i * 0.025;
       const s = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10), i === 2 ? this.bandMat : this.bodyMat);
-      s.castShadow = true;
+      s.castShadow = i % 2 === 0;
       s.position.set(0, r, -i * 0.3);
       this.group.add(s);
       this.segments.push(s);

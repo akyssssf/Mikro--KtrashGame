@@ -184,7 +184,11 @@ class Game {
       onResume: () => this.fsm.set('explore'),
       onCodex: () => this.openCodex(),
       onMute: () => { this.toggleMute(); this.#showPause(); },
-      onMenu: () => { this.progress.flush(); this.fsm.set('menu'); },
+      onMenu: () => {
+        this.progress.flush();
+        this.resumeArea = this.progress.data.area;
+        this.fsm.set('menu');
+      },
     }));
   }
 
@@ -197,6 +201,7 @@ class Game {
       await Promise.race([document.fonts.load('800 58px "Baloo 2"'), new Promise((r) => setTimeout(r, 2000))]);
     } catch { /* font opsional */ }
     this.hasSave = this.progress.load();
+    this.resumeArea = this.progress.data.area;
     this.areas.enter('hub');
     this.#placeCing();
     this.ui.hud.refresh();
@@ -215,7 +220,7 @@ class Game {
       this.progress.reset();
       this.areas.reset();
     }
-    const areaId = this.progress.data.area ?? 'hub';
+    const areaId = fresh ? 'hub' : this.resumeArea ?? 'hub';
     this.areas.enter(areaId, areaId === 'hub' ? null : 'hub');
     this.#placeCing();
     this.ui.hud.refresh();

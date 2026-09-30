@@ -88,6 +88,7 @@ export const TEXT = {
     basketFull: 'Keranjang penuh! Bawa ke Tempat Daur Ulang di desa.',
     newCard: 'Kartu Plastik baru: {abbr} (kode {code})! Tekan K untuk melihat.',
     newTool: 'Alat baru: {tool}!',
+    needNet: 'Butuh jaring! Ambil di rak dekat pondok Pak Udin.',
     netGot: 'Jaring didapat! Berdiri di tepi sungai, lalu tekan E saat botol hanyut dekat.',
     lensGot: 'Lensa Waktu didapat! Pasang di batu bercahaya.',
     bagGot: 'Tas kain didapat! Keranjangmu kini muat {max}.',

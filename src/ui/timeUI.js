@@ -43,6 +43,7 @@ export class TimeUI {
   start(opts) {
     this.opts = opts;
     this.maxReached = 0;
+    document.body.classList.add('time-mode');
     this.caption.classList.remove('hidden');
     this.panel.classList.remove('hidden');
     this.bar.classList.remove('hidden');
@@ -64,6 +65,7 @@ export class TimeUI {
   }
 
   close() {
+    document.body.classList.remove('time-mode');
     this.opts = null;
     this.playing = false;
     for (const el of [this.caption, this.panel, this.bar, this.inset]) el.classList.add('hidden');
