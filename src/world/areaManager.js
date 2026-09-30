@@ -56,7 +56,7 @@ export class AreaManager {
     g.player.cancelWalk();
     if (from) g.player.heading = Math.atan2(-spot.x, -spot.z);
     g.cing.position.set(spot.x + 1.2, 0, spot.z + 1.4);
-    g.rig.follow(g.player.position);
+    g.rig.follow(g.player.position, g.player.heading);
     g.rig.snap();
     area.updateHealth(0, true);
     g.progress.setArea(id);

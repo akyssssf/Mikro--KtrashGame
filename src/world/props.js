@@ -1,6 +1,6 @@
 // Properti low-poly untuk dunia (rumah, pohon, lapak, jembatan, dsb.).
 import * as THREE from 'three';
-import { box, canvasTexture, cone, cyl, group, ico, mat, mesh, place } from './builders.js';
+import { box, canvasTexture, cone, cyl, group, ico, mat, mesh, place, toon } from './builders.js';
 
 export function tree(scale = 1, variant = 0) {
   const g = new THREE.Group();
@@ -121,7 +121,7 @@ export function signpost(text, { color = '#fff8e7', ink = '#17324d', arrow = 0, 
   });
   const bh = width * 0.28;
   g.add(box(width, bh, 0.1, 0xb7793f, 0, 1.6, 0));
-  const face = new THREE.Mesh(new THREE.PlaneGeometry(width - 0.08, bh - 0.08), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }));
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(width - 0.08, bh - 0.08), toon({ map: tex, roughness: 0.9 }));
   face.position.set(0, 1.6, 0.056);
   g.add(face);
   return g;
@@ -142,7 +142,7 @@ export function stall({ awning = '#ef4444', counter = 0xb7793f, w = 3.2, d = 2 }
       ctx.fillRect((cw / stripes) * i, 0, cw / stripes + 1, ch);
     }
   });
-  const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, 0.12, d + 0.5), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }));
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 0.4, 0.12, d + 0.5), toon({ map: tex, roughness: 0.9 }));
   roof.position.set(0, 2.4, 0.1);
   roof.rotation.x = -0.18;
   roof.castShadow = true;

@@ -1,11 +1,11 @@
 // Pulau diorama melayang: rumput di atas, lapisan tanah terlihat di tepi.
 import * as THREE from 'three';
-import { mesh } from './builders.js';
+import { mesh, toon } from './builders.js';
 
 export const SOIL_OK = [0x7b5536, 0x654329, 0x4e331f];
 export const SOIL_BAD = [0x8b8680, 0x77736d, 0x5f5c58];
-export const GRASS_OK = 0x6cbf4a;
-export const GRASS_BAD = 0xa8a377;
+export const GRASS_OK = 0x9fd653;
+export const GRASS_BAD = 0xb3ab7c;
 
 export function roundedRectShape(hw, hd, r) {
   const s = new THREE.Shape();
@@ -26,7 +26,7 @@ export function roundedRectShape(hw, hd, r) {
 export function flatShape(shape, color, y = 0.02) {
   const g = new THREE.ShapeGeometry(shape, 6);
   g.rotateX(-Math.PI / 2);
-  const m = mesh(g, new THREE.MeshStandardMaterial({ color, roughness: 1, flatShading: true }), 0, y, 0);
+  const m = mesh(g, toon({ color }), 0, y, 0);
   m.castShadow = false;
   return m;
 }
@@ -34,7 +34,7 @@ export function flatShape(shape, color, y = 0.02) {
 export function flatCircle(x, z, r, color, y = 0.02, seg = 20) {
   const g = new THREE.CircleGeometry(r, seg);
   g.rotateX(-Math.PI / 2);
-  const m = mesh(g, new THREE.MeshStandardMaterial({ color, roughness: 1, flatShading: true }), x, y, z);
+  const m = mesh(g, toon({ color }), x, y, z);
   m.castShadow = false;
   return m;
 }
@@ -70,15 +70,15 @@ export function ribbon(curve, width, color, y, segments = 60) {
   // Pastikan normal menghadap ke atas apa pun arah lilitannya.
   const n = g.attributes.normal;
   for (let i = 0; i < n.count; i++) n.setXYZ(i, 0, 1, 0);
-  const m = mesh(g, new THREE.MeshStandardMaterial({ color, roughness: 1, side: THREE.DoubleSide }), 0, 0, 0);
+  const m = mesh(g, toon({ color, side: THREE.DoubleSide }), 0, 0, 0);
   m.castShadow = false;
   return m;
 }
 
 export function buildIsland({ hw, hd, radius = 6 }) {
   const group = new THREE.Group();
-  const grassMat = new THREE.MeshStandardMaterial({ color: GRASS_OK, roughness: 1, flatShading: true });
-  const soilMats = SOIL_OK.map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: 1, flatShading: true }));
+  const grassMat = toon({ color: GRASS_OK });
+  const soilMats = SOIL_OK.map((c) => toon({ color: c }));
 
   const layer = (inset, depth, top, material, receive = true) => {
     const g = new THREE.ExtrudeGeometry(roundedRectShape(hw - inset, hd - inset, Math.max(1, radius - inset)), {

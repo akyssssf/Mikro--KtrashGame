@@ -9,7 +9,7 @@ import { t } from '../../data/dialogs.id.js';
 import { buildRiver, distanceToCurve, riverColliders } from '../water.js';
 import { clamp, progressOf } from '../../systems/timeSim.js';
 import { makeItemModel } from '../items3d.js';
-import { bake, box, cyl, place } from '../builders.js';
+import { bake, box, cyl, place, toon } from '../builders.js';
 import { bridge, bush, fence, house, rock, tree, villager } from '../props.js';
 
 const FLOAT_SPEED = 0.9;
@@ -42,7 +42,7 @@ export default class SungaiArea extends Area {
     rack.add(box(0.12, 1.6, 0.12, 0x7a5230, -0.7, 0.8, 0), box(0.12, 1.6, 0.12, 0x7a5230, 0.7, 0.8, 0), box(1.6, 0.1, 0.1, 0x7a5230, 0, 1.55, 0));
     P.add(place(rack, d.netRack.x, 0, d.netRack.z));
     C.addBox(d.netRack.x, d.netRack.z, 0.85, 0.2);
-    this.rackNet = new THREE.Mesh(new THREE.ConeGeometry(0.45, 0.9, 8, 1, true), new THREE.MeshStandardMaterial({ color: 0xf5f0e1, side: THREE.DoubleSide, transparent: true, opacity: 0.9 }));
+    this.rackNet = new THREE.Mesh(new THREE.ConeGeometry(0.45, 0.9, 8, 1, true), toon({ color: 0xf5f0e1, side: THREE.DoubleSide, transparent: true, opacity: 0.9 }));
     this.rackNet.position.set(d.netRack.x, 1.05, d.netRack.z);
     this.rackNet.rotation.x = Math.PI;
     this.rackNet.visible = !this.progress.hasTool('jaring');
@@ -127,12 +127,12 @@ export default class SungaiArea extends Area {
       model.rotation.set(this.rand() * 0.6, this.rand() * 6, this.rand() * 0.6);
       this.pile.add(model);
     }
-    const mound = new THREE.Mesh(new THREE.SphereGeometry(1.2, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x6f7d2f, flatShading: true }));
+    const mound = new THREE.Mesh(new THREE.SphereGeometry(1.2, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), toon({ color: 0x6f7d2f, flatShading: true }));
     mound.scale.set(1.2, 0.55, 0.8);
     mound.castShadow = true;
     this.pile.add(mound);
     // Satu mesh gabungan; warnanya dikusamkan lewat material (vertex color × warna material).
-    this.pileMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, flatShading: true });
+    this.pileMat = toon({ vertexColors: true, roughness: 0.8, flatShading: true });
     bake(this.pile, { batchMaterials: { static: this.pileMat } });
     this.pile.position.set(d.pile.x, 0, d.pile.z);
     this.root.add(this.pile);
@@ -248,12 +248,12 @@ export default class SungaiArea extends Area {
     // Bekas tumpukan menjadi tanah subur dengan tunas kecil.
     if (!this.sprouts) {
       this.sprouts = new THREE.Group();
-      const soil = new THREE.Mesh(new THREE.CircleGeometry(1.4, 16), new THREE.MeshStandardMaterial({ color: 0x5b3a24, roughness: 1 }));
+      const soil = new THREE.Mesh(new THREE.CircleGeometry(1.4, 16), toon({ color: 0x5b3a24, roughness: 1 }));
       soil.rotation.x = -Math.PI / 2;
       soil.position.y = 0.04;
       this.sprouts.add(soil);
       for (let i = 0; i < 6; i++) {
-        const s = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.35, 4), new THREE.MeshStandardMaterial({ color: 0x5cb85c }));
+        const s = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.35, 4), toon({ color: 0x5cb85c }));
         s.position.set(Math.cos(i) * 0.8, 0.18, Math.sin(i * 1.7) * 0.6);
         this.sprouts.add(s);
       }

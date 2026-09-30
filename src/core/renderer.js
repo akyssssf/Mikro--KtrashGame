@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-const SHADOW_SPAN = 20;
+const SHADOW_SPAN = 24;
 
 export function createRenderContext(container) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -8,16 +8,16 @@ export function createRenderContext(container) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.setClearColor(0xdff1fb);
+  renderer.setClearColor(0xc6efff);
   container.prepend(renderer.domElement);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.5, 400);
+  const camera = new THREE.PerspectiveCamera(55, 1, 0.3, 420);
 
-  const hemi = new THREE.HemisphereLight(0xfff6e0, 0xb6a57c, 1.25);
+  const hemi = new THREE.HemisphereLight(0xfffbea, 0xa7c98a, 1.6);
   scene.add(hemi);
 
-  const sun = new THREE.DirectionalLight(0xfff2d6, 2.3);
+  const sun = new THREE.DirectionalLight(0xfff4de, 2.1);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, {

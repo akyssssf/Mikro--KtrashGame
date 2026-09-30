@@ -1,6 +1,6 @@
 // Lensa Waktu: batu soket + lensa melayang + pusaran di sekitar area kecil yang dimajukan waktunya.
 import * as THREE from 'three';
-import { canvasTexture } from '../world/builders.js';
+import { canvasTexture, toon } from '../world/builders.js';
 
 export class LensaWaktu {
   constructor({ socket, center, radius }) {
@@ -12,7 +12,7 @@ export class LensaWaktu {
 
     const pedestal = new THREE.Group();
     pedestal.position.set(socket.x, 0, socket.z);
-    const stone = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 0.7, 7), new THREE.MeshStandardMaterial({ color: 0x9ca3af, flatShading: true }));
+    const stone = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 0.7, 7), toon({ color: 0x9ca3af, flatShading: true }));
     stone.position.y = 0.35;
     stone.castShadow = true;
     stone.receiveShadow = true;
@@ -27,7 +27,7 @@ export class LensaWaktu {
 
     // Lensa yang melayang di atas pusat area.
     this.lens = new THREE.Group();
-    const frame = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.09, 8, 28), new THREE.MeshStandardMaterial({ color: 0xc9a227, metalness: 0.4, roughness: 0.35 }));
+    const frame = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.09, 8, 28), toon({ color: 0xc9a227, metalness: 0.4, roughness: 0.35 }));
     const glass = new THREE.Mesh(new THREE.CircleGeometry(0.66, 28), new THREE.MeshBasicMaterial({ color: 0xbfe9ff, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false }));
     this.lens.add(frame, glass);
     this.lens.rotation.x = -Math.PI / 2.4;

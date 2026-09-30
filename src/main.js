@@ -10,6 +10,7 @@ import { loadPrefs, savePrefs } from './core/save.js';
 import { Player } from './entities/player.js';
 import { Cing } from './entities/cing.js';
 import { createSky } from './world/sky.js';
+import { createOcean, HORIZON } from './world/ocean.js';
 import { AreaManager } from './world/areaManager.js';
 import { AREA_IDS } from './world/areaRegistry.js';
 import { Interaction } from './systems/interaction.js';
@@ -39,6 +40,8 @@ class Game {
     this.input = new InputManager(this.renderer.domElement);
     this.rig = new CameraRig(this.camera);
     this.sky = createSky(this.scene);
+    this.ocean = createOcean(this.scene);
+    this.scene.fog = new THREE.Fog(HORIZON, 60, 210);
     this.prefs = loadPrefs();
     this.audio = new Audio(!!this.prefs.muted);
     this.progress = new Progress();
@@ -71,12 +74,19 @@ class Game {
     this.ui.clickMarker = (x, z) => this.effects.clickMarker(x, z);
 
     this.dialogQueue = [];
+    this.shadowFocus = new THREE.Vector3();
     this.villageDisplay = null;
     this.showFps = new URLSearchParams(location.search).has('fps');
     this.fps = { frames: 0, time: 0, value: 0 };
     this.fsm = new StateMachine(this.#states());
 
     this.progress.on('change', (e) => this.#onProgress(e));
+    this.input.on('drag', ({ dx, dy }) => {
+      if (this.fsm.is('explore', 'timeGate')) this.rig.drag(dx, dy);
+    });
+    this.input.on('zoom', ({ delta }) => {
+      if (this.fsm.is('explore')) this.rig.zoom(delta);
+    });
     this.input.on('tap', ({ x, y }) => {
       this.audio.unlock();
       if (this.fsm.is('explore')) this.interaction.handleTap(x, y);
@@ -104,7 +114,7 @@ class Game {
         },
         exit: (next) => { if (next !== 'codex') this.ui.menu.hide(); },
         update: () => {
-          this.rig.setOverride({ focus: new THREE.Vector3(0, 0, 0), distance: 46, pitch: 0.62, yaw: this.time * 0.05, smoothing: 2 });
+          this.rig.setOverride({ focus: new THREE.Vector3(0, 0, 0), distance: 38, pitch: 0.42, yaw: this.time * 0.05, smoothing: 2 });
         },
       },
       explore: {
@@ -361,7 +371,7 @@ class Game {
     };
     this.fsm.set('timeGate', {
       opts,
-      pose: { focus: new THREE.Vector3(0, 0, -1), distance: 50, pitch: 0.95 },
+      pose: { focus: new THREE.Vector3(0, 0, -1), distance: 38, pitch: 0.8 },
       onExit: () => {
         hub.overrideHealth = null;
         hub.visuals.setMicro(0);
@@ -395,7 +405,7 @@ class Game {
     };
     this.fsm.set('timeGate', {
       opts,
-      pose: { focus: lens.center.clone(), distance: 13, pitch: 0.95 },
+      pose: { focus: lens.center.clone().setY(0.8), distance: 10, pitch: 0.75 },
       onExit: () => lens.setActive(false),
     });
     if (!this.progress.flag('lensIntro')) {
@@ -448,8 +458,8 @@ class Game {
       this.fsm.set('dialog', d);
       return;
     }
-    this.player.update(dt, inp, this.rig, this.collision, !this.areas.busy);
-    this.rig.follow(this.player.position);
+    const speed = this.player.update(dt, inp, this.rig, this.collision, !this.areas.busy);
+    this.rig.follow(this.player.position, this.player.heading, speed);
     this.interaction.update(!this.areas.busy);
     if (inp.consume('interact')) this.interaction.interact();
   }
@@ -479,8 +489,12 @@ class Game {
     this.cing.update(dt, this.time, this.player);
     this.effects.update(dt);
     this.sky.update(dt);
+    this.ocean.update(dt);
     this.rig.update(dt);
-    this.followShadow(this.rig.focus);
+    // Kotak bayangan digeser ke depan kamera, karena kamera rendah melihat jauh ke depan.
+    const ahead = 7;
+    this.shadowFocus.set(this.rig.focus.x - Math.sin(this.rig.yaw) * ahead, 0, this.rig.focus.z - Math.cos(this.rig.yaw) * ahead);
+    this.followShadow(this.shadowFocus);
 
     this.renderer.info.reset();
     this.renderer.render(this.scene, this.camera);

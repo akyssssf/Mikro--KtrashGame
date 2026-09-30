@@ -6,8 +6,9 @@ import { Trash } from '../entities/trash.js';
 import { PLASTICS } from '../data/plastics.js';
 import { ITEM_TYPES } from '../data/items.js';
 import { t } from '../data/dialogs.id.js';
-import { buildIsland } from './diorama.js';
-import { bake, canvasTexture, mesh, rng } from './builders.js';
+import { buildIsland, roundedRectShape } from './diorama.js';
+import { OCEAN_Y } from './ocean.js';
+import { bake, canvasTexture, mesh, rng, toon } from './builders.js';
 import { signpost } from './props.js';
 import { SoilVisuals } from './soilVisuals.js';
 
@@ -39,6 +40,7 @@ export class Area {
     const { hw, hd, r } = this.data.size;
     this.island = buildIsland({ hw, hd, radius: r });
     this.root.add(this.island.group);
+    this.root.add(shallows(hw, hd, r));
     this.collision.setBounds(hw - 0.3, hd - 0.3, r);
     this.root.add(this.props);
     this.buildContent();
@@ -177,7 +179,7 @@ export class Area {
       const mound = mesh(new THREE.SphereGeometry(0.5, 8, 5, 0, Math.PI * 2, 0, Math.PI / 2), moundMat, pos.x, 0, pos.z);
       mound.scale.set(1, 0.35, 1);
       const code = ITEM_TYPES[b.type].kode;
-      const bit = mesh(new THREE.BoxGeometry(0.18, 0.28, 0.08), new THREE.MeshStandardMaterial({ color: typeof code === 'number' ? PLASTICS[code].color : 0x4d7c0f }), pos.x + 0.1, 0.18, pos.z);
+      const bit = mesh(new THREE.BoxGeometry(0.18, 0.28, 0.08), toon({ color: typeof code === 'number' ? PLASTICS[code].color : 0x4d7c0f }), pos.x + 0.1, 0.18, pos.z);
       bit.rotation.z = 0.5;
       const stain = mesh(new THREE.CircleGeometry(0.9, 16), stainMat, pos.x, 0.03, pos.z);
       stain.rotation.x = -Math.PI / 2;
@@ -219,8 +221,18 @@ export class Area {
   }
 }
 
-const moundMat = new THREE.MeshStandardMaterial({ color: 0x6b5a45, roughness: 1, flatShading: true });
+const moundMat = toon({ color: 0x6b5a45, roughness: 1, flatShading: true });
 const stainMat = new THREE.MeshBasicMaterial({ color: 0x3a3428, transparent: true, opacity: 0.35, depthWrite: false });
+
+// Air dangkal terang di sekitar pulau (seperti laguna).
+function shallows(hw, hd, r) {
+  const g = new THREE.ShapeGeometry(roundedRectShape(hw + 5, hd + 5, r + 5), 12);
+  g.rotateX(-Math.PI / 2);
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0x7fe6f5, roughness: 0.3, transparent: true, opacity: 0.85, polygonOffset: true, polygonOffsetFactor: -2 }));
+  m.position.y = OCEAN_Y + 0.04;
+  m.receiveShadow = true;
+  return m;
+}
 
 // Label kecil melayang (mis. nama tempat) sebagai sprite.
 export function labelSprite(text, { bg = '#fff8e7', ink = '#17324d', scale = 1 } = {}) {

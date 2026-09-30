@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { makeItemModel, rememberLook, applyWear } from './items3d.js';
 import { ITEM_TYPES } from '../data/items.js';
 import { clamp, microFraction, microSpread, progressOf } from '../systems/timeSim.js';
-import { rng } from './builders.js';
+import { rng, toon } from './builders.js';
 
 const SW = 10;
 const SD = 2.4;
@@ -29,7 +29,7 @@ export class SoilSection {
     sun.position.set(4, 10, 8);
     this.scene.add(sun);
 
-    const M = (c) => new THREE.MeshStandardMaterial({ color: c, roughness: 1 });
+    const M = (c) => toon({ color: c, roughness: 1 });
     this.soilMats = SOIL_OK.map((c) => M(c.clone()));
     [[-0.65, 1.3], [-2.1, 1.6], [-3.7, 1.6]].forEach(([y, hgt], i) => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(SW, hgt, SD), this.soilMats[i]);

@@ -1,8 +1,9 @@
 // Model sampah prosedural (diadaptasi dari demo lama). Tiap model memakai material unik
 // supaya bisa dikusamkan/dipudarkan saat waktu dimajukan.
 import * as THREE from 'three';
+import { toon } from './builders.js';
 
-const M = (color, opts = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0, ...opts });
+const M = (color, opts = {}) => toon({ color, ...opts });
 const clear = (op) => ({ transparent: true, opacity: op, roughness: 0.25 });
 
 // Sampah kecil tidak memberi bayangan (menghemat draw call bayangan).

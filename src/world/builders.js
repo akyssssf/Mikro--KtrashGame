@@ -5,18 +5,33 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
 const matCache = new Map();
 
+// Gaya "cel shading" lembut: 3 tingkat terang, bayangan tidak terlalu gelap.
+let toonRamp = null;
+function ramp() {
+  if (!toonRamp) {
+    toonRamp = new THREE.DataTexture(new Uint8Array([150, 150, 150, 255, 205, 205, 205, 255, 255, 255, 255, 255]), 3, 1);
+    toonRamp.minFilter = THREE.NearestFilter;
+    toonRamp.magFilter = THREE.NearestFilter;
+    toonRamp.needsUpdate = true;
+  }
+  return toonRamp;
+}
+
+// Material toon; opsi PBR (roughness/metalness) diabaikan agar resep lama tetap jalan.
+export function toon(params = {}) {
+  const { roughness, metalness, ...rest } = params;
+  return new THREE.MeshToonMaterial({ gradientMap: ramp(), ...rest });
+}
+
 // Material bersama per warna (dipakai sebelum di-bake / untuk objek dinamis).
 export function mat(color, opts = {}) {
   const key = `${color}|${JSON.stringify(opts)}`;
-  if (!matCache.has(key)) {
-    matCache.set(key, new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0, flatShading: true, ...opts }));
-  }
+  if (!matCache.has(key)) matCache.set(key, toon({ color, ...opts }));
   return matCache.get(key);
 }
 
 // Material unik (untuk objek yang warnanya/transparansinya diubah per objek).
-export const uniqueMat = (color, opts = {}) =>
-  new THREE.MeshStandardMaterial({ color, roughness: 0.7, metalness: 0, flatShading: true, ...opts });
+export const uniqueMat = (color, opts = {}) => toon({ color, ...opts });
 
 export function place(obj, x = 0, y = 0, z = 0, ry = 0) {
   obj.position.set(x, y, z);
@@ -82,8 +97,7 @@ export function bake(root, { batchMaterials = {} } = {}) {
   for (const { batch, shadow, geos } of buckets.values()) {
     const merged = mergeGeometries(geos, false);
     geos.forEach((g) => g.dispose());
-    const material = batchMaterials[batch] ??
-      new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.88, metalness: 0, flatShading: true });
+    const material = batchMaterials[batch] ?? toon({ vertexColors: true });
     batchMaterials[batch] = material;
     const m = new THREE.Mesh(merged, material);
     m.castShadow = shadow === 'cast';

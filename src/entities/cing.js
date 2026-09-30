@@ -1,6 +1,6 @@
 // Cing, cacing tanah pemandu. Warna dan ekspresinya mengikuti kesehatan tanah.
 import * as THREE from 'three';
-import { canvasTexture } from '../world/builders.js';
+import { canvasTexture, toon } from '../world/builders.js';
 
 const HAPPY = new THREE.Color(0xf28ba8);
 const TIRED = new THREE.Color(0xb9a3a6);
@@ -16,8 +16,8 @@ export class Cing {
     this.phase = 0;
     this.heading = 0;
     this.reducedMotion = false;
-    this.bodyMat = new THREE.MeshStandardMaterial({ color: HAPPY.clone(), roughness: 0.45 });
-    this.bandMat = new THREE.MeshStandardMaterial({ color: 0xe46f93, roughness: 0.5 });
+    this.bodyMat = toon({ color: HAPPY.clone(), roughness: 0.45 });
+    this.bandMat = toon({ color: 0xe46f93, roughness: 0.5 });
     this.segments = [];
     for (let i = 0; i < SEGMENTS; i++) {
       const r = 0.26 - i * 0.025;
@@ -32,8 +32,8 @@ export class Cing {
     const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.36, 16, 12), this.bodyMat);
     headMesh.castShadow = true;
     this.head.add(headMesh);
-    const eyeWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
-    const pupil = new THREE.MeshStandardMaterial({ color: 0x17324d, roughness: 0.3 });
+    const eyeWhite = toon({ color: 0xffffff, roughness: 0.3 });
+    const pupil = toon({ color: 0x17324d, roughness: 0.3 });
     this.eyes = [-0.13, 0.13].map((x) => {
       const e = new THREE.Group();
       e.position.set(x, 0.08, 0.29);
@@ -44,7 +44,7 @@ export class Cing {
       this.head.add(e);
       return e;
     });
-    const mouthMat = new THREE.MeshStandardMaterial({ color: 0x7a2340, roughness: 0.6 });
+    const mouthMat = toon({ color: 0x7a2340, roughness: 0.6 });
     const smile = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.025, 6, 12, Math.PI), mouthMat);
     smile.rotation.z = Math.PI;
     smile.position.set(0, -0.06, 0.32);
@@ -56,7 +56,7 @@ export class Cing {
     this.mouths = { ceria: smile, biasa: flat, lesu: frown };
     Object.values(this.mouths).forEach((m) => this.head.add(m));
     // Topi daun kecil.
-    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), new THREE.MeshStandardMaterial({ color: 0x4f9e45, flatShading: true }));
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), toon({ color: 0x4f9e45, flatShading: true }));
     leaf.scale.set(1.3, 0.35, 0.7);
     leaf.position.set(0.05, 0.36, 0);
     leaf.rotation.z = 0.3;

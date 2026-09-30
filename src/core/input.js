@@ -26,6 +26,8 @@ const BINDINGS = {
   slot8: ['Digit8', 'Numpad8'],
 };
 
+const DRAG_THRESHOLD = 6;
+
 const codeToActions = new Map();
 for (const [action, codes] of Object.entries(BINDINGS)) {
   for (const code of codes) {
@@ -55,12 +57,35 @@ export class InputManager extends Emitter {
       this.pointer.inside = true;
     });
     canvas.addEventListener('pointerleave', () => { this.pointer.inside = false; });
+    // Klik singkat = 'tap' (jalan/interaksi). Seret = 'drag' (putar kamera). Roda = 'zoom'.
+    this.press = null;
     canvas.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
-      this.pointer.x = e.clientX;
-      this.pointer.y = e.clientY;
-      this.emit('tap', { x: e.clientX, y: e.clientY, pointerId: e.pointerId, type: e.pointerType });
+      if (e.button !== 0 && e.button !== 2) return;
+      this.press = { id: e.pointerId, x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, dragged: e.button === 2, button: e.button };
+      canvas.setPointerCapture(e.pointerId);
     });
+    canvas.addEventListener('pointermove', (e) => {
+      const p = this.press;
+      if (!p || p.id !== e.pointerId) return;
+      if (!p.dragged && Math.hypot(e.clientX - p.x, e.clientY - p.y) > DRAG_THRESHOLD) p.dragged = true;
+      if (p.dragged) this.emit('drag', { dx: e.clientX - p.lastX, dy: e.clientY - p.lastY });
+      p.lastX = e.clientX;
+      p.lastY = e.clientY;
+    });
+    const release = (e) => {
+      const p = this.press;
+      if (!p || p.id !== e.pointerId) return;
+      this.press = null;
+      if (!p.dragged && p.button === 0 && e.type === 'pointerup') {
+        this.emit('tap', { x: e.clientX, y: e.clientY, pointerId: e.pointerId, type: e.pointerType });
+      }
+    };
+    canvas.addEventListener('pointerup', release);
+    canvas.addEventListener('pointercancel', release);
+    canvas.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      this.emit('zoom', { delta: e.deltaY });
+    }, { passive: false });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 

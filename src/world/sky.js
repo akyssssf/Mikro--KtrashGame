@@ -8,9 +8,9 @@ export function createSky(scene) {
     side: THREE.BackSide,
     depthWrite: false,
     uniforms: {
-      top: { value: new THREE.Color(0x5fb8ef) },
-      horizon: { value: new THREE.Color(0xdff3ff) },
-      bottom: { value: new THREE.Color(0xf6ecd3) },
+      top: { value: new THREE.Color(0x29b3f0) },
+      horizon: { value: new THREE.Color(0xc6efff) },
+      bottom: { value: new THREE.Color(0x27bde6) },
     },
     vertexShader: `varying vec3 vPos; void main(){ vPos = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
     fragmentShader: `uniform vec3 top; uniform vec3 horizon; uniform vec3 bottom; varying vec3 vPos;
@@ -35,7 +35,7 @@ export function createSky(scene) {
     puffs.push(s);
   }
   const cloudGeo = mergeGeometries(puffs);
-  const clouds = new THREE.InstancedMesh(cloudGeo, new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }), 12);
+  const clouds = new THREE.InstancedMesh(cloudGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false }), 12);
   const cloudData = [];
   const m = new THREE.Matrix4();
   for (let i = 0; i < clouds.count; i++) {

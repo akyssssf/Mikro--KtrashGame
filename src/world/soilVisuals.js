@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { GRASS_BAD, GRASS_OK, SOIL_BAD, SOIL_OK } from './diorama.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { rng } from './builders.js';
+import { rng, toon } from './builders.js';
 
 const FOLIAGE_OK = new THREE.Color(0xffffff);
 const FOLIAGE_BAD = new THREE.Color(0xc7c09a);
@@ -35,7 +35,7 @@ export class SoilVisuals {
     // Rumput: kerucut kecil. Tinggi seluruh kelompok disetel lewat scale.y (murah).
     const tuftGeo = new THREE.ConeGeometry(0.08, 0.5, 4);
     tuftGeo.translate(0, 0.25, 0);
-    this.grassMat = new THREE.MeshStandardMaterial({ color: GRASS_OK, roughness: 1, flatShading: true });
+    this.grassMat = toon({ color: GRASS_OK });
     const grassSpots = spots(grass);
     this.grass = new THREE.InstancedMesh(tuftGeo, this.grassMat, grassSpots.length);
     grassSpots.forEach(([x, z], i) => {
@@ -57,7 +57,7 @@ export class SoilVisuals {
     head.translate(0, 0.48, 0);
     const flowerGeo = mergeGeometries([stem.toNonIndexed(), head]);
     const flowerSpots = spots(flowers, 2);
-    this.flowers = new THREE.InstancedMesh(flowerGeo, new THREE.MeshStandardMaterial({ roughness: 0.8, flatShading: true }), flowerSpots.length);
+    this.flowers = new THREE.InstancedMesh(flowerGeo, toon(), flowerSpots.length);
     flowerSpots.forEach(([x, z], i) => {
       q.setFromAxisAngle(up, rand() * 6.28);
       s.setScalar(0.8 + rand() * 0.6);
@@ -71,7 +71,7 @@ export class SoilVisuals {
 
     // Cacing yang muncul di permukaan saat tanah sehat.
     this.worms = [];
-    const wormMat = new THREE.MeshStandardMaterial({ color: 0xf4a3b5, roughness: 0.5 });
+    const wormMat = toon({ color: 0xf4a3b5 });
     const wormGeo = new THREE.CapsuleGeometry(0.06, 0.34, 3, 6);
     wormGeo.rotateZ(Math.PI / 2);
     for (const [x, z] of spots(worms, 3)) {
