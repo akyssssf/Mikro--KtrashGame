@@ -1,7 +1,7 @@
 // HUD eksplorasi: misi, kesehatan tanah + Cing, keranjang, alat, prompt, toast, banner, fade.
 import { t, TEXT } from '../data/dialogs.id.js';
 import { moodOf } from '../systems/soilHealth.js';
-import { button, cingSvg, codeBadge, h, TOOL_ICONS, uiRoot } from './dom.js';
+import { cingSvg, codeBadge, h, iconButton, TOOL_ICONS, UI_ICONS, uiRoot } from './dom.js';
 
 const TOOL_ORDER = ['jaring', 'lensa', 'tasKain', 'pencapit'];
 
@@ -34,13 +34,14 @@ export class Hud {
       this.moodText,
     ));
 
-    this.soundBtn = button(t('hud.soundOn'), () => game.toggleMute(), 'small ghost', 'M');
-    this.buttons = h('div', { id: 'hud-buttons' },
-      button(t('hud.codexBtn'), () => game.openCodex(), 'small alt', 'K'),
-      button(t('hud.basketBtn'), () => game.openBasket(), 'small ghost', 'I'),
+    this.soundBtn = iconButton('soundOn', t('hud.soundOn'), () => game.toggleMute(), 'M');
+    this.buttons = h('div', { class: 'icon-row' },
+      iconButton('codex', t('hud.codexBtn'), () => game.openCodex(), 'K'),
+      iconButton('basket', t('hud.basketBtn'), () => game.openBasket(), 'I'),
       this.soundBtn,
-      button(t('hud.pauseBtn'), () => game.pause(), 'small ghost', 'Esc'),
+      iconButton('pause', t('hud.pauseBtn'), () => game.pause(), 'Esc'),
     );
+    this.right = h('div', { id: 'hud-right' }, this.soil, this.buttons);
 
     this.slots = h('div', { class: 'slots', role: 'list', 'aria-label': t('hud.basket') });
     this.basketLabel = h('div', { class: 'basket-label' });
@@ -54,7 +55,7 @@ export class Hud {
     this.fadeEl = h('div', { id: 'fade' });
     this.fpsEl = h('div', { id: 'fps', class: 'hidden' });
 
-    this.group = [this.quest, this.soil, this.buttons, this.bottom];
+    this.group = [this.quest, this.right, this.bottom];
     root.append(...this.group, this.promptEl, this.toastEl, this.bannerEl, this.fpsEl);
     document.body.append(this.fadeEl);
     for (const el of [this.promptEl, this.toastEl, this.bannerEl, this.fpsEl]) el.classList.add('passthrough');
@@ -89,7 +90,7 @@ export class Hud {
     const objs = g.quests.objectives();
     this.quest.innerHTML = '';
     this.quest.append(
-      h('h3', {}, t('hud.quest')),
+      h('h3', {}, h('span', { class: 'chip' }, t('hud.quest'))),
       h('div', { class: 'title' }, qText.title),
       h('ul', {}, objs.map((o) => h('li', { class: o.done ? 'done' : '' },
         h('span', { class: 'box', 'aria-hidden': 'true' }),
@@ -115,7 +116,10 @@ export class Hud {
       this.tools.append(h('div', { class: `tool ${has ? '' : 'locked'}`, title: t(`tools.${tool}`), html: TOOL_ICONS[tool] },
         h('span', { class: 'sr-only' }, `${t(`tools.${tool}`)}${has ? '' : t('a11y.locked')}`)));
     }
-    this.soundBtn.firstChild.textContent = g.audio.muted ? t('hud.soundOff') : t('hud.soundOn');
+    const muted = g.audio.muted;
+    this.soundBtn.firstElementChild.outerHTML = UI_ICONS[muted ? 'soundOff' : 'soundOn'];
+    this.soundBtn.setAttribute('aria-label', t(muted ? 'hud.soundOff' : 'hud.soundOn'));
+    this.soundBtn.title = `${t(muted ? 'hud.soundOff' : 'hud.soundOn')} (M)`;
   }
 
   // Kesehatan yang ditampilkan (sudah dihaluskan).

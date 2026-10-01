@@ -17,11 +17,12 @@ export const TEXT = {
     no: 'Batal',
     codex: 'Kartu Plastik',
     controlsTitle: 'Cara main',
+    footer: 'Game edukasi 7 jenis plastik · untuk SD sampai SMA',
     controls: [
       ['W A S D / panah', 'Berjalan (atau klik tanah)'],
       ['Shift', 'Lari'],
       ['E / Spasi', 'Pungut, bicara, pakai'],
-      ['Q / R', 'Putar kamera 90°'],
+      ['Q / R', 'Putar kamera (atau seret mouse)'],
       ['I', 'Buka keranjang'],
       ['K', 'Kartu Plastik'],
       ['M', 'Suara nyala/mati'],

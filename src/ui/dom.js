@@ -80,6 +80,23 @@ export const TOOL_ICONS = {
   pencapit: '<svg viewBox="0 0 32 32"><path d="M6 27 L22 9" stroke="#475569" stroke-width="3" stroke-linecap="round"/><path d="M22 9 L27 5 M22 9 L26 12" stroke="#17324d" stroke-width="3" stroke-linecap="round"/><rect x="3" y="24" width="7" height="5" rx="2" fill="#f08a2c" stroke="#17324d" stroke-width="2"/></svg>',
 };
 
+export const UI_ICONS = {
+  codex: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="7" width="14" height="19" rx="3" fill="#fff8e7" stroke="#17324d" stroke-width="2.5" transform="rotate(-10 12 16)"/><rect x="12" y="5" width="14" height="19" rx="3" fill="#f08a2c" stroke="#17324d" stroke-width="2.5"/><path d="M19 10 L23 17 L15 17 Z" fill="none" stroke="#17324d" stroke-width="2" stroke-linejoin="round"/></svg>',
+  basket: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 13 Q16 3 23 13" stroke="#17324d" stroke-width="2.5" fill="none"/><path d="M5 13 H27 L24 27 H8 Z" fill="#e3b06d" stroke="#17324d" stroke-width="2.5" stroke-linejoin="round"/><path d="M11 17 V23 M16 17 V23 M21 17 V23" stroke="#17324d" stroke-width="2" stroke-linecap="round"/></svg>',
+  soundOn: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 12 H11 L17 7 V25 L11 20 H6 Z" fill="#fff8e7" stroke="#17324d" stroke-width="2.5" stroke-linejoin="round"/><path d="M21 11 Q25 16 21 21 M24 8 Q30 16 24 24" stroke="#17324d" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>',
+  soundOff: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 12 H11 L17 7 V25 L11 20 H6 Z" fill="#fff8e7" stroke="#17324d" stroke-width="2.5" stroke-linejoin="round"/><path d="M21 12 L28 20 M28 12 L21 20" stroke="#c0343a" stroke-width="3" stroke-linecap="round"/></svg>',
+  pause: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="8" y="7" width="6" height="18" rx="2" fill="#fff8e7" stroke="#17324d" stroke-width="2.5"/><rect x="18" y="7" width="6" height="18" rx="2" fill="#fff8e7" stroke="#17324d" stroke-width="2.5"/></svg>',
+  play: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M10 6 L26 16 L10 26 Z" fill="currentColor"/></svg>',
+};
+
+// Tombol ikon persegi dengan label untuk pembaca layar dan petunjuk tombol keyboard.
+export function iconButton(icon, label, onClick, key) {
+  const b = h('button', { class: 'icon-btn', type: 'button', title: `${label} (${key})`, 'aria-label': label, html: UI_ICONS[icon] });
+  b.append(h('span', { class: 'key', 'aria-hidden': 'true' }, key));
+  b.addEventListener('click', (e) => { e.currentTarget.blur(); onClick(e); });
+  return b;
+}
+
 export const ORGANIC_SWATCH = '#4d7c0f';
 
 export function codeBadge(code) {

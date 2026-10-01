@@ -1,6 +1,6 @@
 // Panel overlay: menu judul, jeda, keranjang, Tempat Daur Ulang.
 import { t, TEXT } from '../data/dialogs.id.js';
-import { button, codeBadge, h, uiRoot } from './dom.js';
+import { button, cingSvg, codeBadge, h, uiRoot, UI_ICONS } from './dom.js';
 
 export class Overlay {
   constructor(id) {
@@ -23,26 +23,37 @@ export class Overlay {
 export function menuPanel({ hasSave, onContinue, onNew, onCodex }) {
   const stack = h('div', { class: 'stack' });
   const confirmBox = h('div', { class: 'stack hidden' },
-    h('p', { class: 'note' }, t('menu.newGameConfirm')),
-    h('div', { class: 'row', style: 'justify-content:center' },
+    h('p', { class: 'confirm' }, t('menu.newGameConfirm')),
+    h('div', { class: 'row' },
       button(t('menu.yes'), onNew, 'alt'),
       button(t('menu.no'), () => { confirmBox.classList.add('hidden'); stack.classList.remove('hidden'); }, 'ghost'),
     ),
   );
+  const play = (label, fn, cls = '') => {
+    const b = button(label, fn, `big ${cls}`.trim());
+    b.insertAdjacentHTML('afterbegin', UI_ICONS.play);
+    return b;
+  };
   if (hasSave) {
-    stack.append(button(t('menu.continue'), onContinue));
+    stack.append(play(t('menu.continue'), onContinue));
     stack.append(button(t('menu.newGame'), () => { stack.classList.add('hidden'); confirmBox.classList.remove('hidden'); confirmBox.querySelector('button').focus(); }, 'ghost'));
   } else {
-    stack.append(button(t('menu.newGame'), onNew));
+    stack.append(play(t('menu.newGame'), onNew));
   }
-  stack.append(button(t('menu.codex'), onCodex, 'alt'));
+  const codexBtn = button(t('menu.codex'), onCodex, 'alt');
+  codexBtn.insertAdjacentHTML('afterbegin', UI_ICONS.codex);
+  stack.append(codexBtn);
   const controls = h('div', { class: 'controls', 'aria-label': t('menu.controlsTitle') },
-    TEXT.menu.controls.flatMap(([k, v]) => [h('kbd', {}, k), h('span', {}, v)]));
+    TEXT.menu.controls.flatMap(([k, v]) => [h('span', { class: 'keys' }, k.split(' / ').map((x) => h('kbd', {}, x))), h('span', {}, v)]));
   return h('section', { id: 'menu', class: 'card', role: 'dialog', 'aria-labelledby': 'menu-title' },
-    h('h1', { id: 'menu-title' }, `${t('game.titleA')} `, h('span', {}, t('game.titleB'))),
+    h('div', { class: 'brand' },
+      h('div', { class: 'brand-cing', html: cingSvg('ceria') }),
+      h('h1', { id: 'menu-title' }, h('span', { class: 'a' }, t('game.titleA')), h('span', { class: 'b' }, t('game.titleB'))),
+    ),
     h('p', { class: 'tagline' }, t('game.tagline')),
     stack, confirmBox,
-    h('details', {}, h('summary', { class: 'note', style: 'cursor:pointer;margin-top:12px' }, t('menu.controlsTitle')), controls),
+    h('details', { class: 'how' }, h('summary', {}, t('menu.controlsTitle')), controls),
+    h('p', { class: 'foot' }, t('menu.footer')),
   );
 }
 

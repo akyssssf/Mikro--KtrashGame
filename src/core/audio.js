@@ -51,7 +51,8 @@ export class Audio {
   card() { [523, 659, 784, 1047].forEach((f, i) => this.#tone(f, 0.16, 'triangle', 0.06, null, i * 0.07)); }
   tool() { [392, 523, 659].forEach((f, i) => this.#tone(f, 0.18, 'sine', 0.08, null, i * 0.09)); }
   talk() { this.#tone(300 + Math.random() * 120, 0.05, 'sine', 0.03); }
-  click() { this.#tone(700, 0.04, 'sine', 0.035); }
+  click() { this.#tone(620, 0.06, 'triangle', 0.05, 900); }
+  hover() { this.#tone(1150, 0.03, 'sine', 0.015); }
   whoosh() { this.#tone(180, 0.6, 'sine', 0.06, 900); }
   splash() { this.#tone(900, 0.18, 'sine', 0.05, 250); }
   step() { this.#tone(150 + Math.random() * 50, 0.05, 'triangle', 0.012); }

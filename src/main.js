@@ -32,7 +32,7 @@ import { anyMicro, captionFor, microLabel, rowsFor, villageAt } from './systems/
 import { simulate, sliderFromYears } from './systems/timeSim.js';
 import { areaDamage } from './systems/soilHealth.js';
 import { basketPanel, menuPanel, Overlay, pausePanel, recyclePanel } from './ui/panels.js';
-import { h } from './ui/dom.js';
+import { cingSvg, h } from './ui/dom.js';
 import { t, TEXT } from './data/dialogs.id.js';
 
 class Game {
@@ -104,6 +104,16 @@ class Game {
       if (this.fsm.is('explore')) this.interaction.handleTap(x, y);
     });
     window.addEventListener('pointerdown', () => this.audio.unlock(), { once: true });
+    // Suara hover & klik untuk semua tombol UI.
+    let hovered = null;
+    document.addEventListener('pointerover', (e) => {
+      const b = e.target.closest?.('.btn, .icon-btn, .codex-card');
+      if (b && b !== hovered && !b.disabled) this.audio.hover();
+      hovered = b;
+    });
+    document.addEventListener('click', (e) => {
+      if (e.target.closest?.('.btn, .icon-btn, .codex-card')) this.audio.click();
+    }, true);
     window.addEventListener('keydown', () => this.audio.unlock(), { once: true });
     window.addEventListener('beforeunload', () => this.progress.flush());
   }
@@ -126,7 +136,11 @@ class Game {
         },
         exit: (next) => { if (next !== 'codex') this.ui.menu.hide(); },
         update: () => {
-          this.rig.setOverride({ focus: new THREE.Vector3(0, 0, 0), distance: 38, pitch: 0.42, yaw: this.time * 0.05, smoothing: 2 });
+          // Fokus digeser ke kiri layar supaya pulau tampil di sebelah kanan panel menu.
+          const yaw = this.time * 0.04;
+          const shift = window.innerWidth > 900 ? 14 : 0;
+          const focus = new THREE.Vector3(-Math.cos(yaw) * shift, 0, Math.sin(yaw) * shift);
+          this.rig.setOverride({ focus, distance: 58, pitch: 0.5, yaw, smoothing: 2 });
         },
       },
       explore: {
@@ -591,13 +605,20 @@ class Game {
 
 // Font dan aset 3D dimuat dulu, baru dunia dibangun.
 async function start() {
-  const label = h('span', {}, t('game.loading'));
-  const loading = h('div', { id: 'loading' }, label);
+  const bar = h('i');
+  const label = h('p', {}, t('game.loading'));
+  const loading = h('div', { id: 'loading' },
+    h('div', { class: 'loading-card' },
+      h('div', { class: 'loading-cing', html: cingSvg('ceria') }),
+      h('h1', {}, h('span', { class: 'a' }, t('game.titleA')), ' ', h('span', { class: 'b' }, t('game.titleB'))),
+      h('div', { class: 'bar', role: 'progressbar', 'aria-label': t('game.loading') }, bar),
+      label,
+    ));
   document.body.append(loading);
   try {
     await Promise.race([document.fonts.load('800 58px "Baloo 2"'), new Promise((r) => setTimeout(r, 2000))]);
   } catch { /* font opsional */ }
-  await loadAssets((k) => { label.textContent = `${t('game.loading')} ${Math.round(k * 100)}%`; });
+  await loadAssets((k) => { bar.style.width = `${Math.round(k * 100)}%`; });
   const game = new Game();
   game.boot(loading);
   if (import.meta.env.DEV) window.__game = game;
