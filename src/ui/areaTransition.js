@@ -38,14 +38,10 @@ export class AreaTransition {
         p = p * p * (3 - 2 * p);
         const r = (cover ? p : 1 - p) * rMax;
         if (r < 0.5) continue;
-        ctx.fillStyle = COLOR;
+        // Sebagian titik lebih terang → motif sisik/daun miring saat layar tertutup penuh.
+        ctx.fillStyle = (Math.round(x / CELL) + row) % 5 ? COLOR : COLOR_LIGHT;
         ctx.beginPath();
         ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-        // Polkadot terang di tengah tiap titik (terlihat saat layar tertutup penuh).
-        ctx.fillStyle = COLOR_LIGHT;
-        ctx.beginPath();
-        ctx.arc(x, y, r * 0.22, 0, Math.PI * 2);
         ctx.fill();
       }
     }
