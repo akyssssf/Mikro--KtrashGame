@@ -1,51 +1,42 @@
-// Rumput stylized: rumpun bilah padat (InstancedMesh, 1 draw call) dengan gradasi akar→ujung,
-// petak warna, goyang angin, dan tersibak saat pemain lewat. Semua gerak dihitung di shader.
+// Rumput stylized: karpet bilah tipis yang padat (InstancedMesh, 1 draw call).
+// Warna = gradasi pangkal (sama dengan tanah) → ujung terang, plus petak warna per rumpun.
+// Normal selalu menghadap ke atas (bukan per bilah) supaya bilah tidak gelap di sisi belakang
+// dan padang terlihat lembut seperti lukisan. Angin, kilau ujung, dan sibakan pemain di shader.
 import * as THREE from 'three';
 
-const BLADES_PER_CLUMP = 5;
-const SPACING = 0.42;
+const BLADES_PER_CLUMP = 6;
+const SPACING = 0.32;
 
-// Satu rumpun: beberapa bilah meruncing, tinggi ternormalisasi 0…1 (diskalakan per instance).
 function clumpGeometry(rand) {
   const pos = [];
-  const col = [];
+  const tAttr = [];
   const idx = [];
-  const rows = [0, 0.35, 0.7];
   for (let b = 0; b < BLADES_PER_CLUMP; b++) {
     const a = rand() * Math.PI * 2;
-    const r = Math.sqrt(rand()) * 0.2;
+    const r = Math.sqrt(rand()) * 0.17;
     const ox = Math.cos(a) * r;
     const oz = Math.sin(a) * r;
     const yaw = rand() * Math.PI * 2;
-    const lean = 0.15 + rand() * 0.25;
-    const width = 0.05 + rand() * 0.03;
-    const height = 0.75 + rand() * 0.35;
-    const cx = Math.cos(yaw);
-    const sz = Math.sin(yaw);
+    const lean = 0.12 + rand() * 0.28;
+    const width = 0.035 + rand() * 0.02;
+    const height = 0.6 + rand() * 0.45;
+    const c = Math.cos(yaw);
+    const s = Math.sin(yaw);
     const base = pos.length / 3;
     const point = (side, t) => {
-      const w = width * (1 - t) * side;
-      const forward = lean * t * t;
-      // Bilah di bidang lokal, lalu diputar yaw.
-      const lx = w;
-      const lz = forward;
-      pos.push(ox + lx * cx - lz * sz, t * height, oz + lx * sz + lz * cx);
-      const shade = 0.6 + 0.55 * t;
-      col.push(shade, shade, shade);
+      const lx = width * (1 - t * 0.85) * side;
+      const lz = lean * t * t;
+      pos.push(ox + lx * c - lz * s, t * height, oz + lx * s + lz * c);
+      tAttr.push(t);
     };
-    for (const t of rows) { point(-1, t); point(1, t); }
+    for (const t of [0, 0.5]) { point(-1, t); point(1, t); }
     point(0, 1);
-    for (let i = 0; i < rows.length - 1; i++) {
-      const v = base + i * 2;
-      idx.push(v, v + 1, v + 2, v + 1, v + 3, v + 2);
-    }
-    const top = base + rows.length * 2;
-    idx.push(top - 2, top - 1, top);
+    idx.push(base, base + 1, base + 2, base + 1, base + 3, base + 2, base + 2, base + 3, base + 4);
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(new Array(pos.length).fill(0).map((_, i) => (i % 3 === 1 ? 1 : 0)), 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(pos.map((_, i) => (i % 3 === 1 ? 1 : 0)), 3));
+  g.setAttribute('aT', new THREE.Float32BufferAttribute(tAttr, 1));
   g.setIndex(idx);
   return g;
 }
@@ -55,54 +46,96 @@ const patch = (x, z) => 0.5 + 0.25 * Math.sin(x * 0.21 + Math.cos(z * 0.13) * 2)
 
 export function createGrass({ hw, hd, exclude, rand }) {
   const geo = clumpGeometry(rand);
-  const material = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
-  const uniforms = { uTime: { value: 0 }, uPlayer: { value: new THREE.Vector3(999, 0, 999) }, uWind: { value: 1 } };
+  const material = new THREE.MeshLambertMaterial({ side: THREE.DoubleSide });
+  const uniforms = {
+    uTime: { value: 0 },
+    uPlayer: { value: new THREE.Vector3(999, 0, 999) },
+    uWind: { value: 1 },
+    uBase: { value: new THREE.Color() },
+    uTip: { value: new THREE.Color() },
+  };
   material.onBeforeCompile = (shader) => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nuniform float uTime;\nuniform vec3 uPlayer;\nuniform float uWind;')
+      .replace('#include <common>', `#include <common>
+        uniform float uTime;
+        uniform vec3 uPlayer;
+        uniform float uWind;
+        attribute float aT;
+        attribute vec3 aVar;
+        varying float vT;
+        varying float vGust;
+        varying vec3 vVar;`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
         vec3 ip = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
-        float bend = position.y * position.y;
-        float w = sin(uTime * 1.6 + ip.x * 0.32 + ip.z * 0.21) * 0.6 + sin(uTime * 2.7 + ip.x * 0.9 - ip.z * 0.5) * 0.25;
-        transformed.x += w * 0.22 * uWind * bend;
-        transformed.z += w * 0.08 * uWind * bend;
+        float bend = aT * aT;
+        // Gelombang angin besar yang bergerak melintasi padang + getar kecil.
+        float gust = sin(uTime * 1.3 - ip.x * 0.18 - ip.z * 0.11) * 0.5 + 0.5;
+        float w = (gust * 0.8 + sin(uTime * 3.1 + ip.x * 1.7 + ip.z * 1.3) * 0.2) * uWind;
+        transformed.x += w * 0.28 * bend;
+        transformed.z += w * 0.12 * bend;
+        transformed.y -= w * 0.06 * bend;
         vec2 away = ip.xz - uPlayer.xz;
         float dist = length(away);
-        float push = (1.0 - smoothstep(0.3, 1.3, dist)) * bend;
-        transformed.xz += (away / max(dist, 0.001)) * push * 0.5;
-        transformed.y -= push * 0.3;`);
+        float push = (1.0 - smoothstep(0.25, 1.2, dist)) * bend;
+        transformed.xz += (away / max(dist, 0.001)) * push * 0.55;
+        transformed.y -= push * 0.35;
+        vT = aT;
+        vGust = gust * uWind;
+        vVar = aVar;`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+        uniform vec3 uBase;
+        uniform vec3 uTip;
+        varying float vT;
+        varying float vGust;
+        varying vec3 vVar;`)
+      .replace('#include <color_fragment>', `
+        vec3 grassCol = mix(uBase, uTip, pow(vT, 1.15)) * vVar;
+        grassCol += vec3(0.07, 0.08, 0.03) * vGust * vT * vT;
+        diffuseColor.rgb = grassCol;`)
+      // Normal ke atas untuk kedua sisi bilah (tanpa dibalik faceDirection).
+      .replace('#include <normal_fragment_begin>', `
+        float faceDirection = 1.0;
+        vec3 normal = normalize( vNormal );
+        vec3 nonPerturbedNormal = normal;`);
   };
-  material.customProgramCacheKey = () => 'stylized-grass';
+  material.customProgramCacheKey = () => 'stylized-grass-v2';
 
   const spots = [];
-  for (let x = -hw + 0.6; x < hw - 0.6; x += SPACING) {
-    for (let z = -hd + 0.6; z < hd - 0.6; z += SPACING) {
+  for (let x = -hw + 0.5; x < hw - 0.5; x += SPACING) {
+    for (let z = -hd + 0.5; z < hd - 0.5; z += SPACING) {
       const px = x + (rand() - 0.5) * SPACING;
       const pz = z + (rand() - 0.5) * SPACING;
       if (!exclude(px, pz)) spots.push([px, pz]);
     }
   }
   const mesh = new THREE.InstancedMesh(geo, material, spots.length);
+  const variation = new Float32Array(spots.length * 3);
   const m = new THREE.Matrix4();
   const c = new THREE.Color();
-  const yellow = new THREE.Color(1.08, 1.06, 0.78);
-  const teal = new THREE.Color(0.78, 0.98, 1.0);
+  const warm = new THREE.Color(1.1, 1.05, 0.8);
+  const cool = new THREE.Color(0.85, 1.0, 1.02);
   spots.forEach(([x, z], i) => {
     const n = patch(x, z);
-    const s = 0.26 + n * 0.2 + rand() * 0.08;
-    m.makeScale(0.9 + rand() * 0.3, s, 0.9 + rand() * 0.3).setPosition(x, 0, z);
+    const s = 0.42 + n * 0.22 + rand() * 0.1;
+    m.makeScale(1, s, 1).setPosition(x, 0, z);
     mesh.setMatrixAt(i, m);
-    // Petak kekuningan dan kebiruan supaya padang terlihat dilukis, bukan seragam.
-    c.setRGB(1, 1, 1).lerp(n > 0.5 ? yellow : teal, Math.abs(n - 0.5) * 1.4).multiplyScalar(0.92 + rand() * 0.16);
-    mesh.setColorAt(i, c);
+    // Petak hangat (kekuningan) dan sejuk (kebiruan) supaya terlihat dilukis.
+    c.setRGB(1, 1, 1).lerp(n > 0.5 ? warm : cool, Math.abs(n - 0.5) * 1.6).multiplyScalar(0.95 + rand() * 0.1);
+    variation.set([c.r, c.g, c.b], i * 3);
   });
+  geo.setAttribute('aVar', new THREE.InstancedBufferAttribute(variation, 3));
   mesh.receiveShadow = true;
   mesh.frustumCulled = false;
 
   return {
     mesh,
-    material,
+    // Warna pangkal (= tanah) dan ujung; diubah halus mengikuti kesehatan tanah.
+    setColors(base, tip) {
+      uniforms.uBase.value.copy(base);
+      uniforms.uTip.value.copy(tip);
+    },
     update(time, player, reducedMotion) {
       uniforms.uTime.value = time;
       uniforms.uWind.value = reducedMotion ? 0.25 : 1;

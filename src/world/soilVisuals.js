@@ -1,11 +1,17 @@
 // Tampilan dunia yang mengikuti soilHealth: warna rumput/tanah, rumput, bunga, cacing,
 // kejernihan air, dan partikel mikroplastik (untuk proyeksi). Semua berulang pakai InstancedMesh.
 import * as THREE from 'three';
-import { GRASS_BAD, GRASS_OK, SOIL_BAD, SOIL_OK } from './diorama.js';
+import { SOIL_BAD, SOIL_OK } from './diorama.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createGrass } from './grass.js';
 import { rng, toon } from './builders.js';
 
+const GRASS_BASE_OK = 0x4f9a35;
+const GRASS_BASE_BAD = 0x8c8660;
+const GRASS_TIP_OK = 0xc9ee62;
+const GRASS_TIP_BAD = 0xcfc597;
+const TMP2 = new THREE.Color();
+const TMP3 = new THREE.Color();
 const FOLIAGE_OK = new THREE.Color(0xffffff);
 const FOLIAGE_BAD = new THREE.Color(0xc7c09a);
 const FLOWER_COLORS = [0xff7aa8, 0xffd23f, 0xffffff, 0xb58cff, 0xff9f43].map((c) => new THREE.Color(c));
@@ -35,7 +41,6 @@ export class SoilVisuals {
 
     // Rumput stylized padat. Tinggi seluruh padang disetel lewat scale.y (murah).
     this.grass = createGrass({ hw, hd, exclude, rand });
-    this.grassMat = this.grass.material;
     this.grassGroup = new THREE.Group();
     this.grassGroup.add(this.grass.mesh);
     root.add(this.grassGroup);
@@ -95,10 +100,11 @@ export class SoilVisuals {
     this.health = health;
     const h = THREE.MathUtils.clamp(health / 100, 0, 1);
     const bad = 1 - h;
-    this.island.grassMat.color.setHex(GRASS_OK).lerp(this.tmp.setHex(GRASS_BAD), bad);
-    this.grassMat.color.copy(this.island.grassMat.color).multiplyScalar(1.12);
-    // Tanah di sela rumput lebih gelap, menyatu dengan pangkal bilah.
-    this.island.grassMat.color.multiplyScalar(0.62);
+    // Pangkal bilah = warna tanah berumput, supaya padang menyatu seperti karpet.
+    const base = this.tmp.setHex(GRASS_BASE_OK).lerp(TMP2.setHex(GRASS_BASE_BAD), bad);
+    this.island.grassMat.color.copy(base);
+    const tip = TMP3.setHex(GRASS_TIP_OK).lerp(TMP2.setHex(GRASS_TIP_BAD), bad);
+    this.grass.setColors(base, tip);
     this.island.soilMats.forEach((mat, i) => mat.color.setHex(SOIL_OK[i]).lerp(this.tmp.setHex(SOIL_BAD[i]), bad));
     if (this.foliageMat) this.foliageMat.color.copy(FOLIAGE_OK).lerp(FOLIAGE_BAD, bad);
     this.grassGroup.scale.y = 0.3 + 0.8 * h;
