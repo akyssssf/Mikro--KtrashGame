@@ -65,7 +65,7 @@ export class AreaTransition {
     this.canvas.classList.add('on');
     this.label.innerHTML = '';
     this.label.append(
-      h('div', { class: 'cing', html: cingSvg('ceria') }),
+      h('div', { class: 'cing', html: cingSvg('semangat') }),
       h('b', {}, t(`areas.${areaId}.name`)),
       h('span', { class: 'dots' }, h('i'), h('i'), h('i')),
     );

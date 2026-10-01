@@ -8,6 +8,8 @@ export const TEXT = {
     tagline: 'Jelajahi Desa Lestari, kenali 7 jenis plastik, dan lihat nasib tanah di masa depan.',
     loading: 'Menyiapkan Desa Lestari…',
     tapToStart: 'Ketuk di mana saja untuk lanjut',
+    skipOpening: 'Lewati',
+    openingLabel: 'Video pembuka',
     unsAlt: 'Universitas Sebelas Maret',
     studioAlt: '21 Creative',
   },
@@ -324,9 +326,9 @@ export const TEXT = {
   dialogs: {
     cingWaiting: [
       { who: 'cing', text: 'Halo! Aku <b>Cing</b>, cacing tanah penjaga Desa Lestari.' },
-      { who: 'cing', text: 'Tanah desa kita sedang sakit karena sampah plastik. Lihat, rumputnya kusam.' },
+      { who: 'cing', mood: 'lesu', text: 'Tanah desa kita sedang sakit karena sampah plastik. Lihat, rumputnya kusam.' },
       { who: 'cing', text: 'Jalan pakai <b>WASD</b> atau klik tanah, putar kamera pakai <b>tombol panah</b>. Dekati sampah, lalu tekan <b>E</b>.' },
-      { who: 'cing', text: 'Coba pungut 3 sampah di sekitar lapangan, ya!' },
+      { who: 'cing', mood: 'semangat', text: 'Coba pungut 3 sampah di sekitar lapangan, ya!' },
     ],
     cingIdle: {
       kenalan: [{ who: 'cing', text: 'Senang bertemu kamu!' }],
@@ -335,15 +337,15 @@ export const TEXT = {
       pilah: [{ who: 'cing', text: 'Bawa keranjangmu ke <b>Tempat Daur Ulang</b>, bangunan hijau di timur lapangan.' }],
       pasar: [{ who: 'cing', text: 'Pasar ada di timur desa. Cari kresek yang tersangkut!' }],
       pulang: [{ who: 'cing', text: 'Ayo ke <b>Gerbang Waktu</b> di tengah desa!' }],
-      bebas: [{ who: 'cing', text: 'Tanah yang sehat butuh kita semua. Terima kasih, Penjaga Tanah!' }],
+      bebas: [{ who: 'cing', mood: 'semangat', text: 'Tanah yang sehat butuh kita semua. Terima kasih, Penjaga Tanah!' }],
     },
     done_pungutDesa: [
-      { who: 'cing', text: 'Hebat! Tiap sampah yang dipungut membuat tanah bisa bernapas lagi.' },
+      { who: 'cing', mood: 'semangat', text: 'Hebat! Tiap sampah yang dipungut membuat tanah bisa bernapas lagi.' },
       { who: 'cing', text: 'Bawa <b>Lensa Waktu</b> ini. Lensa ini memajukan waktu di satu titik kecil.' },
       { who: 'cing', text: 'Sungai di barat penuh botol plastik. Ayo ke sana lewat papan petunjuk!' },
     ],
     enter_sungai: [
-      { who: 'cing', text: 'Dulu sungai ini jernih. Sekarang banyak botol PET hanyut.' },
+      { who: 'cing', mood: 'lesu', text: 'Dulu sungai ini jernih. Sekarang banyak botol PET hanyut.' },
       { who: 'cing', text: 'Ambil <b>jaring</b> di pondok Pak Udin untuk menangkap botol di air.' },
     ],
     nelayan: [
@@ -351,18 +353,18 @@ export const TEXT = {
       { who: 'nelayan', text: 'Pakailah! Berdiri di tepi, lalu tangkap botol yang hanyut.' },
     ],
     pileInfo: [
-      { who: 'cing', text: 'Tumpukan daun dan kulit pisang ini menutup jalan. Terlalu banyak untuk dipungut.' },
+      { who: 'cing', mood: 'biasa', text: 'Tumpukan daun dan kulit pisang ini menutup jalan. Terlalu banyak untuk dipungut.' },
       { who: 'cing', text: 'Pasang <b>Lensa Waktu</b> di batu bercahaya itu. Kita lihat apa yang terjadi!' },
     ],
     lensSungaiDone: [
-      { who: 'cing', text: 'Lihat! Daun dan kulit pisang sudah jadi tanah. Jalannya terbuka!' },
-      { who: 'cing', text: 'Tapi botol PET di sebelahnya masih utuh walau 50 tahun berlalu. Kita harus memungutnya sendiri.' },
+      { who: 'cing', mood: 'semangat', text: 'Lihat! Daun dan kulit pisang sudah jadi tanah. Jalannya terbuka!' },
+      { who: 'cing', mood: 'lesu', text: 'Tapi botol PET di sebelahnya masih utuh walau 50 tahun berlalu. Kita harus memungutnya sendiri.' },
     ],
     lensSungaiNotYet: [
       { who: 'cing', text: 'Daunnya belum habis. Coba majukan waktu lebih jauh, sampai setahun.' },
     ],
     done_sungai: [
-      { who: 'cing', text: 'Sungainya mulai jernih lagi! Kamu keren.' },
+      { who: 'cing', mood: 'semangat', text: 'Sungainya mulai jernih lagi! Kamu keren.' },
       { who: 'cing', text: 'Bawa botol-botol itu ke <b>Tempat Daur Ulang</b> di desa untuk dipilah.' },
     ],
     done_pilah: [
@@ -370,7 +372,7 @@ export const TEXT = {
       { who: 'cing', text: 'Sekarang ke <b>Pasar</b> di timur. Di sana banyak kantong kresek beterbangan.' },
     ],
     enter_pasar: [
-      { who: 'cing', text: 'Pasar ramai, tapi kresek tersangkut di pagar dan pohon.' },
+      { who: 'cing', mood: 'lesu', text: 'Pasar ramai, tapi kresek tersangkut di pagar dan pohon.' },
       { who: 'cing', text: 'Kumpulkan kresek, lalu tukar dengan <b>tas kain</b> di lapak Bu Sari.' },
     ],
     busariNeed: [
@@ -385,7 +387,7 @@ export const TEXT = {
     ],
     dartoBefore: [
       { who: 'darto', text: 'Saluran di depan lapakku mampet kresek. Biarkan saja, nanti juga hancur sendiri.' },
-      { who: 'cing', text: 'Hmm, benarkah? Ayo buktikan pakai <b>Lensa Waktu</b> di batu bercahaya!' },
+      { who: 'cing', mood: 'biasa', text: 'Hmm, benarkah? Ayo buktikan pakai <b>Lensa Waktu</b> di batu bercahaya!' },
     ],
     dartoAfterLens: [
       { who: 'darto', text: 'Wah, puluhan tahun pun kresek itu masih ada! Kubuka jerujinya, tolong angkat, ya.' },
@@ -397,18 +399,18 @@ export const TEXT = {
       { who: 'darto', text: 'Airnya mengalir lagi! Terima kasih, Penjaga Tanah.' },
     ],
     done_pasar: [
-      { who: 'cing', text: 'Pasar bersih dan salurannya lancar!' },
+      { who: 'cing', mood: 'semangat', text: 'Pasar bersih dan salurannya lancar!' },
       { who: 'cing', text: 'Ayo pulang ke desa dan lihat masa depan lewat <b>Gerbang Waktu</b>.' },
     ],
     gateIntro: [
-      { who: 'cing', text: 'Ini Gerbang Waktu. Kita bisa melihat ramalan desa di masa depan.' },
+      { who: 'cing', mood: 'biasa', text: 'Ini Gerbang Waktu. Kita bisa melihat ramalan desa di masa depan.' },
       { who: 'cing', text: 'Dunia aslinya tidak berubah. Pilihan kitalah yang menentukan.' },
     ],
     gateFinal: [
-      { who: 'cing', text: 'Siap? Kita lihat Desa Lestari 100 tahun lagi, berdasarkan pilihanmu.' },
+      { who: 'cing', mood: 'semangat', text: 'Siap? Kita lihat Desa Lestari 100 tahun lagi, berdasarkan pilihanmu.' },
     ],
     buriedReact: [
-      { who: 'cing', text: 'Aduh… plastik itu akan tinggal di tanah sangat lama. Ayo lain kali kita pungut bersama.' },
+      { who: 'cing', mood: 'lesu', text: 'Aduh… plastik itu akan tinggal di tanah sangat lama. Ayo lain kali kita pungut bersama.' },
     ],
     recycleIntro: [
       { who: 'cing', text: 'Urutan terbaik: <b>kurangi</b>, <b>pakai ulang</b>, <b>daur ulang</b>, baru <b>buang</b>.' },

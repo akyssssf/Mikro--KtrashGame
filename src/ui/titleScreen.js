@@ -98,3 +98,38 @@ export class TitleScreen {
     window.addEventListener('keydown', tap);
   }
 }
+
+// Video pembuka cerita (sekali tiap main baru). Bisa dilewati dengan tombol, Esc, Spasi atau Enter.
+export function playOpening({ muted = false, reducedMotion = false } = {}) {
+  return new Promise((resolve) => {
+    const video = h('video', { src: `${BASE}intro/pembuka.mp4`, playsinline: '', preload: 'auto' });
+    video.muted = muted;
+    const skip = h('button', { class: 'btn ghost small skip', type: 'button' }, t('game.skipOpening'), h('span', { class: 'key' }, 'Esc'));
+    const el = h('div', { id: 'opening', role: 'dialog', 'aria-label': t('game.openingLabel') }, video, skip);
+    document.body.append(el);
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      window.removeEventListener('keydown', onKey, true);
+      el.classList.add('out');
+      video.pause();
+      setTimeout(() => { el.remove(); resolve(); }, reducedMotion ? 100 : 550);
+    };
+    const onKey = (e) => {
+      if (['Escape', 'Space', 'Enter', 'NumpadEnter'].includes(e.code)) {
+        e.preventDefault();
+        e.stopPropagation();
+        finish();
+      }
+    };
+    window.addEventListener('keydown', onKey, true);
+    skip.addEventListener('click', finish);
+    video.addEventListener('ended', finish);
+    video.addEventListener('error', finish);
+    requestAnimationFrame(() => el.classList.add('on'));
+    // Klik "Main baru" adalah gestur pengguna, jadi video boleh berbunyi; kalau ditolak, putar tanpa suara.
+    video.play().catch(() => { video.muted = true; video.play().catch(finish); });
+    skip.focus({ preventScroll: true });
+  });
+}

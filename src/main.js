@@ -32,7 +32,7 @@ import { anyMicro, captionFor, microLabel, rowsFor, villageAt } from './systems/
 import { simulate, sliderFromYears } from './systems/timeSim.js';
 import { areaDamage } from './systems/soilHealth.js';
 import { basketPanel, howToPanel, menuPanel, Overlay, pausePanel, recyclePanel } from './ui/panels.js';
-import { playSplash, TitleScreen } from './ui/titleScreen.js';
+import { playOpening, playSplash, TitleScreen } from './ui/titleScreen.js';
 import { updateSeeThrough } from './world/seeThrough.js';
 
 // Layar judul: kamera mendongak ke langit, lalu turun ke pose menu setelah diketuk.
@@ -336,8 +336,18 @@ class Game {
     this.fsm.set('title');
   }
 
-  #startGame(fresh) {
+  async #startGame(fresh) {
+    if (this.starting) return;
     this.audio.unlock();
+    if (fresh) {
+      // Video pembuka cerita sebelum main baru.
+      this.starting = true;
+      this.ui.menu.hide();
+      this.audio.silenceMusic(true);
+      await playOpening({ muted: this.audio.muted, reducedMotion: this.reducedMotion });
+      this.audio.silenceMusic(false);
+      this.starting = false;
+    }
     this.hasSave = true;
     this.progress.active = true;
     if (fresh) {

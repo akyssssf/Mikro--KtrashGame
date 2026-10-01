@@ -170,7 +170,9 @@ body.time-mode #toast, body.dialog-open #toast { bottom: auto; top: 110px; }
 /* ---------- dialog ---------- */
 #dialog { position: fixed; left: 0; right: 0; margin: 0 auto; bottom: 20px; width: min(760px, 94vw); display: flex; gap: 16px; align-items: center; padding: 18px 20px 14px; z-index: 6; border-radius: 22px; }
 #dialog .portrait { width: 88px; height: 88px; flex: none; border: 3px solid var(--ink); border-radius: 50%; background: var(--green-pale); display: grid; place-items: center; box-shadow: 0 3px 0 var(--ink); }
+#dialog .portrait { overflow: hidden; }
 #dialog .portrait svg { width: 70px; height: 70px; }
+#dialog .portrait .cing-art { width: 100%; height: 100%; object-fit: cover; transform: scale(1.12) translateY(4%); }
 #dialog .body { flex: 1; min-width: 0; }
 #dialog .who { position: absolute; top: -17px; left: 122px; font-weight: 800; font-size: 15px; color: #fff; background: var(--green); border: 3px solid var(--ink); border-radius: 999px; padding: 0 14px; line-height: 26px; letter-spacing: .03em; }
 #dialog .text { font-size: 22px; font-weight: 600; line-height: 1.3; min-height: 58px; }
@@ -463,7 +465,7 @@ h3.sec { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; colo
   opacity: 0; transform: scale(.85); transition: opacity .2s, transform .35s cubic-bezier(.3, 1.6, .5, 1); color: #fff; }
 .area-wipe-label.on { opacity: 1; transform: none; }
 .area-wipe-label .cing { width: 120px; height: 120px; animation: wipeHop .55s ease-in-out infinite alternate; filter: drop-shadow(0 6px 0 rgba(11, 30, 51, .35)); }
-.area-wipe-label .cing svg { width: 100%; height: 100%; }
+.area-wipe-label .cing svg, .area-wipe-label .cing img { width: 100%; height: 100%; }
 .area-wipe-label b { font-size: clamp(30px, 5vw, 48px); font-weight: 800; -webkit-text-stroke: 8px var(--ink); paint-order: stroke fill; line-height: 1; }
 .area-wipe-label .dots { display: flex; gap: 8px; margin-top: 6px; }
 .area-wipe-label .dots i { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 3px solid var(--ink); animation: wipeDot .9s ease-in-out infinite; }
@@ -471,3 +473,16 @@ h3.sec { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; colo
 .area-wipe-label .dots i:nth-child(3) { animation-delay: .3s; }
 @keyframes wipeHop { from { transform: translateY(0) scaleY(.94); } to { transform: translateY(-16px) scaleY(1.04); } }
 @keyframes wipeDot { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+
+/* Ilustrasi Cing (gambar) di HUD, jeda, layar akhir. */
+.cing-art { display: block; width: 100%; height: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; transition: filter .6s; }
+#hud-soil .cing .cing-art { border-radius: 50%; border: 3px solid var(--ink); background: var(--green-pale); object-fit: cover; }
+.end-cing { width: 140px; height: 140px; }
+
+/* ---------- video pembuka ---------- */
+#opening { position: fixed; inset: 0; z-index: 35; background: #0b0c10; display: grid; place-items: center; opacity: 0; transition: opacity .5s; }
+#opening.on { opacity: 1; }
+#opening.out { opacity: 0; pointer-events: none; }
+#opening video { width: 100%; height: 100%; object-fit: contain; }
+#opening .skip { position: absolute; right: 20px; bottom: 20px; gap: 10px; }
+#opening .skip .key { position: static; }

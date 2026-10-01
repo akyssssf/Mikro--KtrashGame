@@ -90,7 +90,7 @@ export function pausePanel({ muted, quest, onResume, onCodex, onMute, onMenu, sa
     id: 'pause', title: t('pause.title'), icon: 'pause', accent: 'ink', width: 'min(460px,94vw)', onClose: onResume,
     children: [
       h('div', { class: 'pause-quest' },
-        h('div', { class: 'pause-cing', html: cingSvg('ceria') }),
+        h('div', { class: 'pause-cing', html: cingSvg('ceria', { face: true }) }),
         h('div', {},
           h('span', { class: 'chip' }, t('hud.quest')),
           h('div', { class: 'title' }, quest.title),

@@ -39,7 +39,7 @@ export class DialogBox {
   #show() {
     const line = this.lines[this.index];
     this.who.textContent = t(`speakers.${line.who}`);
-    this.portrait.innerHTML = speakerSvg(line.who);
+    this.portrait.innerHTML = speakerSvg(line.who, line.mood);
     this.full = line.text;
     this.plain = line.text.replace(/<[^>]+>/g, '');
     this.shown = this.game.reducedMotion ? this.plain.length : 0;

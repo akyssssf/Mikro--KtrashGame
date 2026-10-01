@@ -29,30 +29,17 @@ export function button(label, onClick, cls = '', key = null) {
   return b;
 }
 
-// Wajah Cing untuk HUD/dialog. mood: ceria | biasa | lesu.
-export function cingSvg(mood = 'ceria', color = '#f28ba8') {
-  const mouth = {
-    ceria: '<path d="M26 44 Q35 53 44 44" stroke="#7a2340" stroke-width="4" fill="none" stroke-linecap="round"/>',
-    biasa: '<path d="M27 46 L43 46" stroke="#7a2340" stroke-width="4" fill="none" stroke-linecap="round"/>',
-    lesu: '<path d="M27 49 Q35 42 43 49" stroke="#7a2340" stroke-width="4" fill="none" stroke-linecap="round"/>',
-  }[mood];
-  const brow = mood === 'lesu'
-    ? '<path d="M22 24 L30 27 M48 24 L40 27" stroke="#17324d" stroke-width="3" stroke-linecap="round"/>'
-    : '';
-  return `<svg viewBox="0 0 70 70" role="img" aria-label="Cing">
-    <ellipse cx="35" cy="64" rx="22" ry="4" fill="#17324d" opacity=".15"/>
-    <circle cx="35" cy="38" r="24" fill="${color}" stroke="#17324d" stroke-width="3"/>
-    <path d="M40 14 Q52 6 58 14 Q50 18 40 14Z" fill="#4f9e45" stroke="#17324d" stroke-width="2.5"/>
-    <circle cx="27" cy="33" r="6" fill="#fff" stroke="#17324d" stroke-width="2"/>
-    <circle cx="43" cy="33" r="6" fill="#fff" stroke="#17324d" stroke-width="2"/>
-    <circle cx="28" cy="34" r="3" fill="#17324d"/><circle cx="44" cy="34" r="3" fill="#17324d"/>
-    ${brow}${mouth}
-    <circle cx="19" cy="42" r="3.5" fill="#ff6b8b" opacity=".45"/><circle cx="51" cy="42" r="3.5" fill="#ff6b8b" opacity=".45"/>
-  </svg>`;
+// Gambar Cing (ilustrasi Nano Banana). mood: ceria | biasa | lesu | semangat.
+// face = potongan wajah (dialog, HUD); tanpa face = badan penuh. saturate < 1 = makin kusam (tanah sakit).
+const CING_MOODS = ['ceria', 'biasa', 'lesu', 'semangat'];
+export function cingSvg(mood = 'ceria', { face = false, saturate = 1 } = {}) {
+  const m = CING_MOODS.includes(mood) ? mood : 'ceria';
+  const style = saturate < 1 ? ` style="filter:saturate(${saturate.toFixed(2)})"` : '';
+  return `<img class="cing-art" src="${import.meta.env.BASE_URL}cing/${m}${face ? '_face' : ''}.webp" alt="Cing" draggable="false"${style}>`;
 }
 
-export function speakerSvg(who) {
-  if (who === 'cing') return cingSvg('ceria');
+export function speakerSvg(who, mood = 'ceria') {
+  if (who === 'cing') return cingSvg(mood, { face: true });
   const colors = { busari: ['#1a7f3d', '#f3c9a0', '#3b2a1a'], darto: ['#2563eb', '#d9a578', '#1f2937'], nelayan: ['#b45309', '#e0a97a', '#6b7280'] };
   const [shirt, skin, hair] = colors[who] ?? ['#f08a2c', '#e0a97a', '#3b2a1a'];
   return `<svg viewBox="0 0 70 70" role="img" aria-label="${who}">

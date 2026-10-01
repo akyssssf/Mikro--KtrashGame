@@ -6,11 +6,8 @@ import { cingSvg, codeBadge, h, iconButton, TOOL_ICONS, UI_ICONS, uiRoot } from 
 const TOOL_ORDER = ['jaring', 'lensa', 'tasKain', 'pencapit'];
 
 const healthColor = (v) => (v >= 70 ? '#2fb35a' : v >= 40 ? '#f5b82e' : '#c0343a');
-const cingColor = (v) => {
-  const k = Math.max(0, Math.min(1, v / 100));
-  const mix = (a, b) => Math.round(a + (b - a) * k);
-  return `rgb(${mix(185, 242)},${mix(163, 139)},${mix(166, 168)})`;
-};
+// Makin sakit tanahnya, makin kusam warna Cing.
+const cingSaturate = (v) => 0.45 + 0.55 * Math.max(0, Math.min(1, v / 100));
 
 export class Hud {
   constructor(game) {
@@ -139,7 +136,7 @@ export class Hud {
     if (this.mood !== mood || Math.abs((this.cingHealth ?? 0) - a) >= 3) {
       this.mood = mood;
       this.cingHealth = a;
-      this.cing.innerHTML = cingSvg(mood, cingColor(areaHealth));
+      this.cing.innerHTML = cingSvg(mood, { face: true, saturate: cingSaturate(areaHealth) });
       this.moodText.textContent = t(`hud.moods.${mood}`);
     }
   }

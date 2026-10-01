@@ -175,9 +175,15 @@ export class Audio {
     this.music = { name, src, gain };
   }
 
+  // Diamkan musik game (mis. selama video pembuka yang punya suaranya sendiri).
+  silenceMusic(on) {
+    this.musicSilenced = on;
+    if (this.ctx) this.musicBus.gain.setTargetAtTime(on ? 0 : MUSIC_VOLUME, this.ctx.currentTime, on ? 0.15 : 0.6);
+  }
+
   // Suasana musik mengikuti tanah (0–100): kusam → redup & teredam. dreamy: efek Gerbang Waktu.
   setMusicMood(health, dreamy = false) {
-    if (!this.ctx) return;
+    if (!this.ctx || this.musicSilenced) return;
     const k = Math.max(0, Math.min(1, health / 100));
     const cutoff = dreamy ? 1400 : 900 * Math.pow(18000 / 900, k);
     const now = this.ctx.currentTime;

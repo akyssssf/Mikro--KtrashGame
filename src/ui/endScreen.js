@@ -20,7 +20,7 @@ export class EndScreen {
       const open = p.hasCard(c);
       return h('span', { class: open ? '' : 'locked', style: open ? `background:${PLASTICS[c].color}` : '' }, open ? `${c} ${PLASTICS[c].abbr}` : `${c} ?`);
     }));
-    const mood = { subur: 'ceria', pulih: 'biasa', kusam: 'lesu' }[outcome];
+    const mood = { subur: 'semangat', pulih: 'ceria', kusam: 'lesu' }[outcome];
     const accent = { subur: 'green', pulih: 'orange', kusam: 'sky' }[outcome];
     const panel = shell({
       id: 'end', title: t(`ending.${outcome}.title`), accent,
