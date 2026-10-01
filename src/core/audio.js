@@ -54,6 +54,7 @@ export class Audio {
   click() { this.#tone(700, 0.04, 'sine', 0.035); }
   whoosh() { this.#tone(180, 0.6, 'sine', 0.06, 900); }
   splash() { this.#tone(900, 0.18, 'sine', 0.05, 250); }
+  step() { this.#tone(150 + Math.random() * 50, 0.05, 'triangle', 0.012); }
   bury() { this.#tone(160, 0.35, 'sine', 0.08, 70); }
 
   // Angin lembut + kicau sesekali, volume rendah.

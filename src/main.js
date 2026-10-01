@@ -10,6 +10,7 @@ import { Audio } from './core/audio.js';
 import { loadPrefs, savePrefs } from './core/save.js';
 import { Player } from './entities/player.js';
 import { Cing } from './entities/cing.js';
+import { Trail } from './entities/trail.js';
 import { createSky } from './world/sky.js';
 import { createOcean, HORIZON } from './world/ocean.js';
 import { AreaManager } from './world/areaManager.js';
@@ -24,9 +25,11 @@ import { Hud } from './ui/hud.js';
 import { DialogBox } from './ui/dialog.js';
 import { Codex } from './ui/codex.js';
 import { TimeUI } from './ui/timeUI.js';
+import { SortGame } from './ui/minigameSort.js';
+import { EndScreen } from './ui/endScreen.js';
 import { SoilSection } from './world/soilSection.js';
 import { anyMicro, captionFor, microLabel, rowsFor, villageAt } from './systems/projection.js';
-import { simulate } from './systems/timeSim.js';
+import { simulate, sliderFromYears } from './systems/timeSim.js';
 import { areaDamage } from './systems/soilHealth.js';
 import { basketPanel, menuPanel, Overlay, pausePanel, recyclePanel } from './ui/panels.js';
 import { h } from './ui/dom.js';
@@ -59,6 +62,12 @@ class Game {
     this.cing = new Cing();
     this.cing.reducedMotion = this.reducedMotion;
     this.scene.add(this.player.group, this.cing.group);
+    this.trail = new Trail(this.scene);
+    this.trail.reducedMotion = this.reducedMotion;
+    this.player.onStep = (pos, running) => {
+      this.trail.step(pos, running);
+      this.audio.step();
+    };
     this.interaction.global = [this.#cingInteractable()];
 
     this.ui = {
@@ -66,6 +75,8 @@ class Game {
       dialog: new DialogBox(this),
       codex: new Codex(this),
       time: new TimeUI(this),
+      sort: new SortGame(this),
+      end: new EndScreen(this),
       overlay: new Overlay('panel'),
       menu: new Overlay('menu-wrap'),
     };
@@ -180,6 +191,33 @@ class Game {
           else if (this.input.consume('interact')) this.ui.time.togglePlay();
         },
       },
+      minigame: {
+        enter: (prev, { items }) => {
+          this.ui.hud.setVisible(false);
+          this.ui.sort.start(items, this.progress.data.sortSessions);
+        },
+        exit: () => this.ui.sort.stop(),
+        update: (dt) => this.ui.sort.update(dt),
+      },
+      ending: {
+        enter: (prev, { health }) => {
+          const hub = this.areas.current;
+          hub.overrideHealth = health;
+          this.ui.hud.setVisible(false);
+          this.rig.setOverride({ focus: new THREE.Vector3(0, 0, -1), distance: 34, pitch: 0.55, yaw: this.rig.yaw, smoothing: 1.5 });
+          this.ui.end.show(health, {
+            onContinue: () => this.fsm.set('explore'),
+            onReplay: () => { this.ui.end.hide(); this.#startGame(true); },
+          });
+        },
+        exit: () => {
+          this.ui.end.hide();
+          this.areas.current.overrideHealth = null;
+          this.areas.current.visuals.setMicro(0);
+          this.rig.clearOverride();
+        },
+        update: (dt) => { this.rig.override.yaw += dt * 0.06; },
+      },
       pause: {
         enter: () => this.#showPause(),
         exit: () => this.ui.overlay.hide(),
@@ -230,7 +268,7 @@ class Game {
     const areaId = fresh ? 'hub' : this.resumeArea ?? 'hub';
     this.areas.enter(areaId, areaId === 'hub' ? null : 'hub');
     this.#placeCing();
-    this.ui.hud.refresh();
+    this.#onProgress({ kind: 'resume' });
     this.fsm.set('explore');
     this.ui.banner(areaId);
     if (!this.progress.flag('talked_cing')) this.toast(t('toast.findCing'), 'info', 4000);
@@ -333,10 +371,15 @@ class Game {
   pause() { if (this.fsm.is('explore')) this.fsm.set('pause'); }
 
   // Gerbang Waktu (global): proyeksi desa. Dunia asli dikembalikan saat ditutup.
-  openTimeGate() {
+  openTimeGate(confirmedFinal = false) {
     if (!this.progress.flag('gateIntro')) {
       this.progress.setFlag('gateIntro');
       this.say('gateIntro', {}, () => this.openTimeGate());
+      return;
+    }
+    const final = this.quests.activeId === 'pulang' || this.progress.flag('finalGate');
+    if (this.quests.activeId === 'pulang' && !confirmedFinal) {
+      this.say('gateFinal', {}, () => this.openTimeGate(true));
       return;
     }
     const hub = this.areas.current;
@@ -365,6 +408,8 @@ class Game {
         return { health: v.health, micro: microLabel(v.micro), rows: rowsFor(all, years), caption: captionFor(all, years), note };
       },
       onClose: () => this.fsm.set('explore'),
+      // Gerbang final: berhenti di 100 tahun lalu tampilkan layar akhir.
+      onEnd: final && confirmedFinal ? () => this.#finishSlice() : null,
     };
     this.fsm.set('timeGate', {
       opts,
@@ -374,6 +419,29 @@ class Game {
         hub.visuals.setMicro(0);
       },
     });
+    if (final && confirmedFinal) this.ui.time.playTo(sliderFromYears(100));
+  }
+
+  #finishSlice() {
+    const v = villageAt(this.soil, 100);
+    this.progress.setFlag('finalGate');
+    this.audio.card();
+    this.fsm.set('ending', { health: v.health });
+    this.areas.current.visuals.setMicro(v.micro / 8);
+  }
+
+  startSort() {
+    const items = this.inventory.items();
+    if (!items.length) {
+      this.toast(t('toast.nothingToSort'), 'info');
+      return;
+    }
+    this.fsm.set('minigame', { items });
+  }
+
+  endSort({ completed, accuracy }) {
+    if (completed) this.progress.finishSort(accuracy);
+    this.fsm.set('explore');
   }
 
   // Lensa Waktu (lokal): memajukan waktu sungguhan di lingkaran kecil. targets: [{ typeId, D, organic, apply(years) }]
@@ -431,10 +499,12 @@ class Game {
   #onProgress(e) {
     if (e.kind === 'reset' || e.kind === 'load') return;
     const done = this.quests.check();
-    if (done) {
+    if (done.length) {
       this.audio.card();
       this.effects.confetti(this.player.position);
-      const key = `done_${done}`;
+    }
+    for (const id of done) {
+      const key = `done_${id}`;
       if (TEXT.dialogs[key]) this.dialogQueue.push({ lines: TEXT.dialogs[key], vars: {} });
     }
     this.player.setTools(this.progress.data.tools);
@@ -485,6 +555,7 @@ class Game {
     this.cing.setAlert(!this.progress.flag('talked_cing') || this.dialogQueue.length > 0);
     this.cing.update(dt, this.time, this.player);
     this.effects.update(dt);
+    this.trail.update(dt, this.player, this.fsm.is('explore') && this.player.runK > 0.5, this.camera);
     this.sky.update(dt);
     this.ocean.update(dt);
     this.rig.update(dt);
@@ -494,7 +565,8 @@ class Game {
     this.followShadow(this.shadowFocus);
 
     this.renderer.info.reset();
-    this.renderer.render(this.scene, this.camera);
+    if (this.fsm.is('minigame')) this.renderer.render(this.ui.sort.scene, this.ui.sort.camera);
+    else this.renderer.render(this.scene, this.camera);
     if (this.fsm.is('timeGate') && this.ui.time.opts?.inset && this.section) {
       this.section.render(this.renderer, this.ui.time.inset.getBoundingClientRect(), this.time);
     }

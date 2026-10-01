@@ -452,6 +452,7 @@ export const TEXT = {
     reward: 'Hadiah: Pencapit! Kamu bisa memungut dari jarak lebih jauh.',
     back: 'Kembali ke desa',
     quit: 'Berhenti',
+    quitNote: 'Sampah yang belum dipilah tetap ada di keranjang.',
     healthUp: 'Tanah desa membaik!',
   },
 

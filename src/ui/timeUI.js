@@ -66,6 +66,7 @@ export class TimeUI {
 
   close() {
     document.body.classList.remove('time-mode');
+    this.stopAt = null;
     this.opts = null;
     this.playing = false;
     for (const el of [this.caption, this.panel, this.bar, this.inset]) el.classList.add('hidden');
@@ -122,10 +123,19 @@ export class TimeUI {
     this.noteEl.textContent = r.note ?? o.note ?? '';
   }
 
+  // Putar otomatis sampai posisi slider tertentu (dipakai Gerbang Waktu final).
+  playTo(s) {
+    this.stopAt = s;
+    this.playing = true;
+    this.#syncPlay();
+  }
+
   update(dt) {
     if (!this.opts || !this.playing) return;
-    this.setSlider(this.s + dt / (this.opts.playSeconds ?? 20));
-    if (this.s >= 1) {
+    const end = this.stopAt ?? 1;
+    this.setSlider(Math.min(end, this.s + dt / (this.opts.playSeconds ?? 20)));
+    if (this.s >= end) {
+      this.stopAt = null;
       this.playing = false;
       this.#syncPlay();
       this.opts.onEnd?.();

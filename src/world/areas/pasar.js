@@ -15,7 +15,7 @@ const PROOF_YEARS = 10;
 const MERCHANTS = {
   busari: { shirt: 0x1a7f3d, skin: 0xf3c9a0, hair: 0x3b2a1a, key: 'npc_busari' },
   darto: { shirt: 0x2563eb, skin: 0xd9a578, hair: 0x1f2937, key: 'npc_darto' },
-  buah: { shirt: 0xf59e0b }, roti: { shirt: 0xdb2777, hair: 0x7c2d12 }, ikan: { shirt: 0x0f766e }, kue: { shirt: 0x7e22ce },
+  buah: { shirt: 0xf59e0b }, roti: { shirt: 0xdb2777, hair: 0x7c2d12, hue: 0.12 }, ikan: { shirt: 0x0f766e, hue: 0.5 }, kue: { shirt: 0x7e22ce, hue: 0.8 },
 };
 
 export default class PasarArea extends Area {

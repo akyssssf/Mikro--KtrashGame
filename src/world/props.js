@@ -1,7 +1,7 @@
 // Properti low-poly untuk dunia (rumah, pohon, lapak, jembatan, dsb.).
 import * as THREE from 'three';
 import { box, canvasTexture, cone, cyl, group, ico, mat, mesh, place, toon } from './builders.js';
-import { cloneAsset } from '../core/assets.js';
+import { cloneAsset, shiftHue } from '../core/assets.js';
 
 // Aset GLB (folder /assets) dipakai bila ada; kalau tidak, bentuk prosedural di bawah.
 export function asset(key, scale = 1) {
@@ -253,9 +253,10 @@ export function recyclingCenter() {
 }
 
 // NPC: aset per tokoh (npc_busari, npc_darto, npc_udin) atau npc_merchant umum.
-export function villager({ shirt = 0xf59e0b, skin = 0xe0a97a, hair = 0x3b2a1a, pants = 0x334155, key = 'npc_merchant' } = {}) {
+// hue: geser warna untuk membuat pedagang umum terlihat berbeda-beda.
+export function villager({ shirt = 0xf59e0b, skin = 0xe0a97a, hair = 0x3b2a1a, pants = 0x334155, key = 'npc_merchant', hue = 0 } = {}) {
   const a = asset(key) ?? asset('npc_merchant');
-  if (a) return a;
+  if (a) return hue ? shiftHue(a, hue) : a;
   const g = new THREE.Group();
   g.add(cyl(0.12, 0.12, 0.7, pants, -0.14, 0.35, 0, 6), cyl(0.12, 0.12, 0.7, pants, 0.14, 0.35, 0, 6));
   g.add(cyl(0.34, 0.4, 0.85, shirt, 0, 1.1, 0, 8));

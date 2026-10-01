@@ -43,17 +43,21 @@ export class Quests {
     });
   }
 
-  // Dipanggil setiap progres berubah. Mengembalikan id misi yang baru selesai (atau null).
+  // Dipanggil setiap progres berubah. Mengembalikan id misi yang baru selesai (bisa beruntun,
+  // mis. pemain sudah memilah sebelum misi "pilah" aktif).
   check() {
-    if (this.checking) return null;
-    const q = this.active;
-    if (!q.objectives.length) return null;
-    if (!this.objectives(q).every((o) => o.done)) return null;
-    // Hadiah memicu 'change' lagi; cegah pemanggilan bersarang memajukan misi dua kali.
+    if (this.checking) return [];
     this.checking = true;
-    this.progress.setQuest(this.index + 1);
-    if (q.reward?.tool) this.game.giveTool(q.reward.tool);
+    const done = [];
+    for (;;) {
+      const q = this.active;
+      if (!q.objectives.length || !this.objectives(q).every((o) => o.done)) break;
+      // Hadiah memicu 'change' lagi; flag checking mencegah misi maju dua kali.
+      this.progress.setQuest(this.index + 1);
+      if (q.reward?.tool) this.game.giveTool(q.reward.tool);
+      done.push(q.id);
+    }
     this.checking = false;
-    return q.id;
+    return done;
   }
 }

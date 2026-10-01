@@ -98,3 +98,23 @@ export function assetWithHeight(key, height, opts) {
   obj.scale.setScalar(height / Math.max(size.y, 1e-3));
   return obj;
 }
+
+// Variasi warna: geser hue warna vertex yang jenuh (putih/hitam/abu dibiarkan, mis. mata).
+export function shiftHue(obj, shift) {
+  const c = new THREE.Color();
+  const hsl = {};
+  obj.traverse((o) => {
+    if (!o.isMesh || !o.geometry.attributes.color) return;
+    o.geometry = o.geometry.clone();
+    const col = o.geometry.attributes.color;
+    for (let i = 0; i < col.count; i++) {
+      c.setRGB(col.getX(i), col.getY(i), col.getZ(i));
+      c.getHSL(hsl);
+      if (hsl.s < 0.3 || hsl.l < 0.08 || hsl.l > 0.92) continue;
+      c.setHSL((hsl.h + shift + 1) % 1, hsl.s, hsl.l);
+      col.setXYZ(i, c.r, c.g, c.b);
+    }
+    col.needsUpdate = true;
+  });
+  return obj;
+}

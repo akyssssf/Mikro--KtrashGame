@@ -16,6 +16,10 @@ export class Player {
     this.onArrive = null;
     this.stuckTime = 0;
     this.walkPhase = 0;
+    this.walkK = 0;
+    this.runK = 0;
+    this.time = 0;
+    this.onStep = null;
     this.reducedMotion = false;
     this.#build();
   }
@@ -168,28 +172,70 @@ export class Player {
     }
 
     const planar = Math.hypot(this.velocity.x, this.velocity.z);
+    let turn = 0;
     if (planar > 0.3) {
       const target = Math.atan2(this.velocity.x, this.velocity.z);
-      let diff = target - this.heading;
-      diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-      this.heading += diff * Math.min(1, dt * 12);
+      const diff = Math.atan2(Math.sin(target - this.heading), Math.cos(target - this.heading));
+      turn = diff * Math.min(1, dt * 12);
+      this.heading += turn;
     }
     this.group.rotation.y = this.heading;
 
     const actual = moved / Math.max(dt, 1e-4);
-    this.walkPhase += dt * actual * 2.4;
-    const amp = Math.min(1, actual / WALK) * (this.reducedMotion ? 0.4 : 0.7);
+    this.#animate(dt, actual, turn / Math.max(dt, 1e-4));
+    return actual;
+  }
+
+  // Siklus diam / jalan / lari dengan pembauran halus, condong saat lari & berbelok,
+  // pantulan badan saat kaki menapak, napas saat diam. onStep dipanggil tiap langkah (untuk debu).
+  #animate(dt, speed, turnRate) {
+    const motion = this.reducedMotion ? 0.45 : 1;
+    const walkK = Math.min(1, speed / WALK);
+    const runK = THREE.MathUtils.clamp((speed - WALK) / (RUN - WALK), 0, 1);
+    const blend = 1 - Math.exp(-dt * 10);
+    this.walkK += (walkK - this.walkK) * blend;
+    this.runK += (runK - this.runK) * blend;
+    const wk = this.walkK;
+    const rk = this.runK;
+
+    const prev = this.walkPhase;
+    this.walkPhase += dt * speed * (2.3 + 0.5 * rk);
+    // Tiap setengah siklus = satu kaki menapak.
+    if (speed > 0.8 && Math.floor(prev / Math.PI) !== Math.floor(this.walkPhase / Math.PI)) {
+      this.onStep?.(this.position, rk > 0.5);
+    }
     const s = Math.sin(this.walkPhase);
-    this.legs[0].rotation.x = s * amp;
-    this.legs[1].rotation.x = -s * amp;
-    this.arms[0].rotation.x = -s * amp * 0.8;
-    this.arms[1].rotation.x = s * amp * 0.8;
-    this.body.position.y = Math.abs(Math.cos(this.walkPhase)) * 0.06 * amp;
+    const legAmp = (0.55 + 0.35 * rk) * wk * motion;
+    const armAmp = (0.5 + 0.6 * rk) * wk * motion;
+    // Kaki: ayunan maju-mundur; saat lari lutut "terangkat" (rotasi lebih besar di fase depan).
+    this.legs[0].rotation.x = s * legAmp - Math.max(0, s) * 0.25 * rk;
+    this.legs[1].rotation.x = -s * legAmp - Math.max(0, -s) * 0.25 * rk;
+    this.arms[0].rotation.x = -s * armAmp;
+    this.arms[1].rotation.x = s * armAmp;
+    // Lengan sedikit membuka ke samping saat lari.
+    this.arms[0].rotation.z = 0.12 * rk * motion;
+    this.arms[1].rotation.z = -0.12 * rk * motion;
+
+    const bounce = Math.abs(Math.cos(this.walkPhase));
+    this.time += dt;
+    const breathe = (1 - wk) * Math.sin(this.time * 2.2) * 0.012 * motion;
+    this.body.position.y = bounce * (0.05 + 0.05 * rk) * wk * motion;
+    // Squash-stretch: memendek saat menapak, memanjang di udara.
+    const squash = (bounce - 0.5) * 0.06 * wk * motion;
+    this.body.scale.set(1 - squash * 0.5, 1 + squash + breathe, 1 - squash * 0.5);
+    // Condong ke depan saat lari dan ke dalam saat berbelok.
+    const lean = (0.06 * wk + 0.16 * rk) * motion;
+    const bank = THREE.MathUtils.clamp(-turnRate * 0.03, -0.18, 0.18) * wk * motion;
+    this.body.rotation.x += (lean - this.body.rotation.x) * blend;
+    this.body.rotation.z += (bank - this.body.rotation.z) * blend;
+    // Kepala sedikit menahan goyangan badan supaya terlihat stabil.
+    this.head.rotation.x = -this.body.rotation.x * 0.5 + Math.sin(this.walkPhase * 2) * 0.03 * wk * motion;
+    this.head.rotation.z = -this.body.rotation.z * 0.6;
+
     if (this.swingT > 0) {
       this.swingT -= dt;
       this.arms[1].rotation.x = -2.2 * Math.sin((this.swingT / 0.35) * Math.PI);
     }
-    return actual;
   }
 }
 

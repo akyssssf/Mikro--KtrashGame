@@ -217,7 +217,7 @@ export class Area {
       if (tr.gone) this.leaving.delete(tr);
     }
     for (const i of this.interactables) i.update?.(time);
-    this.visuals.update(dt, time, reduced);
+    this.visuals.update(dt, time, reduced, this.game.player.position);
   }
 }
 
