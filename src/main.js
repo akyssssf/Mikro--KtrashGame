@@ -64,9 +64,13 @@ class Game {
     this.scene.add(this.player.group, this.cing.group);
     this.trail = new Trail(this.scene);
     this.trail.reducedMotion = this.reducedMotion;
+    // Saat pemain melambai/melompat saat idle, Cing ikut melompat senang.
+    this.player.onIdle = (name) => {
+      if (name === 'wave' || name === 'hop') setTimeout(() => this.cing.trick('hop'), 300);
+    };
     this.player.onStep = (pos, running) => {
       this.trail.step(pos, running);
-      this.audio.step();
+      this.audio.step(this.collision?.onBridge(pos.x, pos.z) ? 'wood' : 'grass', running);
     };
     this.interaction.global = [this.#cingInteractable()];
 

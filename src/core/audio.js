@@ -166,7 +166,14 @@ export class Audio {
   // Belum ada file: tetap sintetis.
   talk() { this.#tone(300 + Math.random() * 120, 0.05, 'sine', 0.03); }
   whoosh() { this.#tone(180, 0.6, 'sine', 0.06, 900); }
-  step() { this.#tone(150 + Math.random() * 50, 0.05, 'triangle', 0.012); }
+  // Langkah: file step_<permukaan>_<n> (variasi acak), nada dinaikkan agar terdengar imut.
+  step(surface = 'grass', running = false) {
+    const variants = Object.keys(this.buffers).filter((k) => k.startsWith(`step_${surface}`));
+    const name = variants.length ? variants[Math.floor(Math.random() * variants.length)] : null;
+    if (!name) { this.#tone(150 + Math.random() * 50, 0.05, 'triangle', 0.012); return; }
+    const rate = (running ? 1.45 : 1.3) + Math.random() * 0.15;
+    this.#sfx(name, null, { rate, volume: running ? 0.45 : 0.32 });
+  }
   bury() { this.#tone(160, 0.35, 'sine', 0.08, 70); }
 
   // ---------- musik ----------

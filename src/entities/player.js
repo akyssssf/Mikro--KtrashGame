@@ -5,6 +5,13 @@ import { cloneAsset } from '../core/assets.js';
 const WALK = 4.2;
 const RUN = 6.8;
 export const PLAYER_RADIUS = 0.42;
+const IDLE_ACTIONS = [
+  { name: 'look', dur: 2.2 },
+  { name: 'wave', dur: 1.8 },
+  { name: 'hop', dur: 1.1 },
+  { name: 'tap', dur: 1.6 },
+  { name: 'stretch', dur: 1.9 },
+];
 
 export class Player {
   constructor() {
@@ -20,6 +27,9 @@ export class Player {
     this.runK = 0;
     this.time = 0;
     this.onStep = null;
+    this.idleT = 0;
+    this.nextIdle = 2.5;
+    this.idleAction = null;
     this.reducedMotion = false;
     this.#build();
   }
@@ -231,10 +241,78 @@ export class Player {
     // Kepala sedikit menahan goyangan badan supaya terlihat stabil.
     this.head.rotation.x = -this.body.rotation.x * 0.5 + Math.sin(this.walkPhase * 2) * 0.03 * wk * motion;
     this.head.rotation.z = -this.body.rotation.z * 0.6;
+    this.head.rotation.y = 0;
+    this.#idle(dt, wk, motion);
 
     if (this.swingT > 0) {
       this.swingT -= dt;
       this.arms[1].rotation.x = -2.2 * Math.sin((this.swingT / 0.35) * Math.PI);
+    }
+  }
+
+  // Idle lucu: setelah diam beberapa detik, pemain melakukan gerakan acak
+  // (menoleh, melambai, melompat kecil, mengetuk kaki, menggeliat).
+  #idle(dt, wk, motion) {
+    if (wk > 0.08 || this.swingT > 0) {
+      this.idleT = 0;
+      this.idleAction = null;
+      return;
+    }
+    this.idleT += dt;
+    if (!this.idleAction && this.idleT > this.nextIdle) {
+      const options = IDLE_ACTIONS.filter((a) => a.name !== this.lastIdle);
+      const pick = options[Math.floor(Math.random() * options.length)];
+      this.idleAction = { ...pick, t: 0 };
+      this.lastIdle = pick.name;
+      this.onIdle?.(pick.name);
+    }
+    const a = this.idleAction;
+    if (!a) return;
+    a.t += dt;
+    const k = Math.min(1, a.t / a.dur);
+    // Masuk dan keluar gerakan dengan halus.
+    const env = Math.min(1, k * 5, (1 - k) * 5) * motion;
+    const [armL, armR] = this.arms;
+    switch (a.name) {
+      case 'look':
+        this.head.rotation.y = Math.sin(k * Math.PI * 2) * 0.75 * env;
+        this.head.rotation.x += Math.sin(k * Math.PI * 4) * 0.08 * env;
+        break;
+      case 'wave':
+        armR.rotation.z = -2.5 * env + Math.sin(a.t * 14) * 0.35 * env;
+        armR.rotation.x = 0;
+        this.head.rotation.z += 0.15 * env;
+        this.body.rotation.z += -0.05 * env;
+        break;
+      case 'hop': {
+        const hop = Math.abs(Math.sin(k * Math.PI * 2));
+        this.body.position.y += hop * 0.28 * env;
+        const land = (1 - hop) * env;
+        this.body.scale.set(1 + 0.08 * land, 1 - 0.1 * land, 1 + 0.08 * land);
+        armL.rotation.z = 0.9 * hop * env;
+        armR.rotation.z = -0.9 * hop * env;
+        break;
+      }
+      case 'tap':
+        this.legs[1].rotation.x = -Math.abs(Math.sin(a.t * 9)) * 0.4 * env;
+        this.head.rotation.z += Math.sin(a.t * 9) * 0.06 * env;
+        armL.rotation.z = 0.25 * env;
+        armR.rotation.z = -0.25 * env;
+        break;
+      case 'stretch':
+        armL.rotation.z = 2.8 * env;
+        armR.rotation.z = -2.8 * env;
+        armL.rotation.x = armR.rotation.x = 0;
+        this.body.scale.y *= 1 + 0.07 * env;
+        this.head.rotation.x = -0.35 * env;
+        break;
+      default:
+        break;
+    }
+    if (k >= 1) {
+      this.idleAction = null;
+      this.idleT = 0;
+      this.nextIdle = 3 + Math.random() * 3;
     }
   }
 }

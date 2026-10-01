@@ -119,6 +119,32 @@ export class Cing {
     this.group.add(this.marker);
   }
 
+  // Gerakan lucu sesaat: 'hop' (lompat senang) atau 'spin' (berputar).
+  trick(kind) {
+    if (!this.trickAction) this.trickAction = { kind, t: 0, dur: kind === 'spin' ? 0.9 : 0.8 };
+  }
+
+  #applyTrick(dt, speed, motion) {
+    // Diam cukup lama → lakukan gerakan sendiri sesekali.
+    this.still = speed < 0.2 ? (this.still ?? 0) + dt : 0;
+    if (this.still > (this.nextTrick ??= 5)) {
+      this.trick(Math.random() < 0.5 ? 'spin' : 'hop');
+      this.still = 0;
+      this.nextTrick = 5 + Math.random() * 4;
+    }
+    const a = this.trickAction;
+    if (!a || !this.body) return;
+    a.t += dt;
+    const k = Math.min(1, a.t / a.dur);
+    if (a.kind === 'spin') this.body.rotation.y = k * Math.PI * 2 * motion;
+    else this.body.position.y = Math.abs(Math.sin(k * Math.PI * 2)) * 0.35 * motion;
+    if (k >= 1) {
+      this.body.rotation.y = 0;
+      this.body.position.y = 0;
+      this.trickAction = null;
+    }
+  }
+
   // Hapus jejak saat pindah area (posisi lama tidak berlaku lagi).
   resetTrail() { this.trail = []; }
 
@@ -198,6 +224,7 @@ export class Cing {
       s.position.y = s.geometry.parameters.radius + Math.max(0, Math.sin(this.phase * 0.5 - i * 0.7)) * 0.06 * motion * energy;
     });
     this.marker.position.y = this.markerY + Math.sin(time * 3) * 0.08 * motion;
+    this.#applyTrick(dt, speed, motion);
     if (this.variants) return;
     const droop = this.mood === 'lesu' ? -0.12 : 0;
     this.head.position.y = 0.62 + Math.sin(this.phase * 0.8) * 0.04 * motion + droop;
