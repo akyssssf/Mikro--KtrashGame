@@ -52,6 +52,7 @@ export class Area {
       hw, hd,
       seed: this.data.order * 13 + 3,
       exclude: (x, z) => this.excludes(x, z),
+      clearSpots: this.data.items.filter((it) => it.floating === undefined).map((it) => [it.x, it.z]),
     });
     this.setupWater?.();
     this.root.add(this.buriedGroup);

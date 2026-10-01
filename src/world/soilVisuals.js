@@ -2,23 +2,24 @@
 // kejernihan air, dan partikel mikroplastik (untuk proyeksi). Semua berulang pakai InstancedMesh.
 import * as THREE from 'three';
 import { SOIL_BAD, SOIL_OK } from './diorama.js';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { createGrass } from './grass.js';
+import { createGrass, grassHeightAt } from './grass.js';
 import { rng, toon } from './builders.js';
 
-const GRASS_BASE_OK = 0x4f9a35;
+const GRASS_BASE_OK = 0x418c2e;
 const GRASS_BASE_BAD = 0x8c8660;
-const GRASS_TIP_OK = 0xc9ee62;
+const GRASS_TIP_OK = 0xb8e65a;
+const GRASS_WARM_OK = 0xdcf07a;
 const GRASS_TIP_BAD = 0xcfc597;
 const TMP2 = new THREE.Color();
 const TMP3 = new THREE.Color();
+const TMP4 = new THREE.Color();
 const FOLIAGE_OK = new THREE.Color(0xffffff);
 const FOLIAGE_BAD = new THREE.Color(0xc7c09a);
-const FLOWER_COLORS = [0xff7aa8, 0xffd23f, 0xffffff, 0xb58cff, 0xff9f43].map((c) => new THREE.Color(c));
+const FLOWER_COLORS = [0xffffff, 0xffd84a, 0xff8fb5, 0x8fd3ff, 0xffffff, 0xc5a3ff, 0xffd84a].map((c) => new THREE.Color(c));
 const MICRO_COLORS = [0xffffff, 0xfde68a, 0x93c5fd, 0xfca5a5, 0xc4b5fd].map((c) => new THREE.Color(c));
 
 export class SoilVisuals {
-  constructor({ root, island, foliageMat, hw, hd, exclude, seed = 1, flowers = 90, worms = 8 }) {
+  constructor({ root, island, foliageMat, hw, hd, exclude, clearSpots = [], seed = 1, flowers = 220, worms = 8 }) {
     this.island = island;
     this.foliageMat = foliageMat;
     this.water = [];
@@ -40,23 +41,27 @@ export class SoilVisuals {
     const up = new THREE.Vector3(0, 1, 0);
 
     // Rumput stylized padat. Tinggi seluruh padang disetel lewat scale.y (murah).
-    this.grass = createGrass({ hw, hd, exclude, rand });
+    this.grass = createGrass({ hw, hd, exclude, rand, clearSpots });
     this.grassGroup = new THREE.Group();
     this.grassGroup.add(this.grass.mesh);
     root.add(this.grassGroup);
 
-    // Bunga: batang + kepala dalam satu geometri, warna per instance. Jumlah tampil = f(kesehatan).
-    const stem = new THREE.CylinderGeometry(0.02, 0.02, 0.45, 4);
-    stem.translate(0, 0.22, 0);
-    const head = new THREE.IcosahedronGeometry(0.11, 0);
-    head.translate(0, 0.48, 0);
-    const flowerGeo = mergeGeometries([stem.toNonIndexed(), head]);
+    // Bunga kecil kelopak lima yang mengambang di ujung rumput (batang tertutup rumput).
+    const petals = new THREE.Shape();
+    for (let i = 0; i <= 40; i++) {
+      const a = (i / 40) * Math.PI * 2;
+      const r = 0.05 + 0.055 * Math.abs(Math.cos(a * 2.5));
+      if (i === 0) petals.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+      else petals.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    const flowerGeo = new THREE.ShapeGeometry(petals);
+    flowerGeo.rotateX(-Math.PI / 2);
     const flowerSpots = spots(flowers, 2);
-    this.flowers = new THREE.InstancedMesh(flowerGeo, toon(), flowerSpots.length);
+    this.flowers = new THREE.InstancedMesh(flowerGeo, new THREE.MeshLambertMaterial({ side: THREE.DoubleSide, emissive: 0x222222 }), flowerSpots.length);
     flowerSpots.forEach(([x, z], i) => {
-      q.setFromAxisAngle(up, rand() * 6.28);
-      s.setScalar(1.35 + rand() * 0.5);
-      p.set(x, 0, z);
+      q.setFromEuler(new THREE.Euler((rand() - 0.5) * 0.5, rand() * 6.28, (rand() - 0.5) * 0.5));
+      s.setScalar(0.8 + rand() * 0.6);
+      p.set(x, grassHeightAt(x, z) * (0.85 + rand() * 0.2), z);
       this.flowers.setMatrixAt(i, m.compose(p, q, s));
       this.flowers.setColorAt(i, FLOWER_COLORS[i % FLOWER_COLORS.length]);
     });
@@ -102,9 +107,11 @@ export class SoilVisuals {
     const bad = 1 - h;
     // Pangkal bilah = warna tanah berumput, supaya padang menyatu seperti karpet.
     const base = this.tmp.setHex(GRASS_BASE_OK).lerp(TMP2.setHex(GRASS_BASE_BAD), bad);
-    this.island.grassMat.color.copy(base);
     const tip = TMP3.setHex(GRASS_TIP_OK).lerp(TMP2.setHex(GRASS_TIP_BAD), bad);
-    this.grass.setColors(base, tip);
+    const warm = TMP4.setHex(GRASS_WARM_OK).lerp(TMP2.setHex(GRASS_TIP_BAD), bad);
+    this.grass.setColors(base, tip, warm);
+    // Tanah = pangkal bilah yang teroklusi, supaya celah antar-rumput tidak terlihat.
+    this.island.grassMat.color.copy(base).multiplyScalar(0.8);
     this.island.soilMats.forEach((mat, i) => mat.color.setHex(SOIL_OK[i]).lerp(this.tmp.setHex(SOIL_BAD[i]), bad));
     if (this.foliageMat) this.foliageMat.color.copy(FOLIAGE_OK).lerp(FOLIAGE_BAD, bad);
     this.grassGroup.scale.y = 0.3 + 0.8 * h;
