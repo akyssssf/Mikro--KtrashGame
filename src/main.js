@@ -655,6 +655,8 @@ async function start() {
   } catch { /* font opsional */ }
   await loadAssets((k) => { bar.style.width = `${Math.round(k * 100)}%`; });
   const game = new Game();
+  // Tunggu musik selesai didekode, supaya klik pertama di menu langsung memutar lagu.
+  await game.audio.preloading;
   game.boot(loading);
   if (import.meta.env.DEV) window.__game = game;
 }

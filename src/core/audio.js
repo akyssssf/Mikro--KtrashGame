@@ -20,7 +20,6 @@ export class Audio {
     this.muted = muted;
     this.ctx = null;
     this.master = null;
-    this.raw = {};
     this.buffers = {};
     this.gains = {};
     this.music = null;
@@ -28,15 +27,22 @@ export class Audio {
     this.preloading = this.preload();
   }
 
-  // Unduh file sejak layar loading (tanpa AudioContext; dekode setelah gestur pertama).
+  // Unduh DAN dekode sejak layar loading. OfflineAudioContext tidak butuh gestur pengguna,
+  // jadi saat klik pertama musik bisa langsung berbunyi tanpa menunggu dekode.
   async preload() {
+    const decoder = new OfflineAudioContext(2, 1, 48000);
     await Promise.all(Object.entries(URLS).map(async ([name, url]) => {
       try {
-        this.raw[name] = await (await fetch(url)).arrayBuffer();
+        const data = await (await fetch(url)).arrayBuffer();
+        const buf = await decoder.decodeAudioData(data);
+        const music = MUSIC_TRACKS.includes(name);
+        this.buffers[name] = music ? buf : trimSilence(buf);
+        this.gains[name] = normalGain(buf, music ? 0.8 : SFX_PEAK);
       } catch {
         // Efek ini akan memakai suara sintetis.
       }
     }));
+    if (this.ctx && this.wantMusic) this.playMusic(this.wantMusic.name, this.wantMusic.opts);
   }
 
   // Dipanggil dari gestur pengguna (klik/tombol) agar browser mengizinkan audio.
@@ -60,46 +66,10 @@ export class Audio {
       this.musicBus.gain.value = MUSIC_VOLUME;
       this.musicBus.connect(this.musicFilter).connect(this.master);
       this.#startAmbient();
-      this.#decodeAll();
+      if (this.wantMusic) this.playMusic(this.wantMusic.name, this.wantMusic.opts, true);
     } catch {
       this.ctx = null;
     }
-  }
-
-  async #decodeAll() {
-    await this.preloading;
-    await Promise.all(Object.entries(this.raw).map(async ([name, data]) => {
-      try {
-        const buf = await this.ctx.decodeAudioData(data.slice(0));
-        const music = MUSIC_TRACKS.includes(name);
-        this.buffers[name] = music ? buf : this.#trim(buf);
-        this.gains[name] = this.#normalGain(buf, music ? 0.8 : SFX_PEAK);
-      } catch {
-        // Gagal didekode: tetap pakai cadangan sintetis.
-      }
-    }));
-    if (this.wantMusic) this.playMusic(this.wantMusic.name, this.wantMusic.opts);
-  }
-
-  // Pangkas hening di awal efek supaya terasa langsung saat tombol ditekan.
-  #trim(buf) {
-    const data = buf.getChannelData(0);
-    let start = 0;
-    while (start < data.length && Math.abs(data[start]) < 0.01) start++;
-    start = Math.max(0, start - Math.floor(buf.sampleRate * 0.005));
-    if (start < buf.sampleRate * 0.01 || start >= buf.length - 1) return buf;
-    const out = this.ctx.createBuffer(buf.numberOfChannels, buf.length - start, buf.sampleRate);
-    for (let c = 0; c < buf.numberOfChannels; c++) out.copyToChannel(buf.getChannelData(c).subarray(start), c);
-    return out;
-  }
-
-  #normalGain(buf, target) {
-    let peak = 0;
-    for (let c = 0; c < buf.numberOfChannels; c++) {
-      const d = buf.getChannelData(c);
-      for (let i = 0; i < d.length; i += 4) peak = Math.max(peak, Math.abs(d[i]));
-    }
-    return peak > 0 ? Math.min(3, target / peak) : 1;
   }
 
   setMuted(m) {
@@ -178,7 +148,7 @@ export class Audio {
 
   // ---------- musik ----------
   // Ganti lagu dengan crossfade. rate < 1 terdengar lebih lambat (dipakai Gerbang Waktu).
-  playMusic(name, opts = {}) {
+  playMusic(name, opts = {}, immediate = false) {
     this.wantMusic = { name, opts };
     if (!this.ctx || !this.buffers[name]) return;
     const { rate = 1 } = opts;
@@ -198,7 +168,8 @@ export class Audio {
     src.playbackRate.value = rate;
     const gain = this.ctx.createGain();
     gain.gain.value = 0;
-    gain.gain.setTargetAtTime(this.gains[name] ?? 1, now, 0.6);
+    // Lagu pertama (saat klik pertama) masuk cepat; pergantian lagu tetap crossfade halus.
+    gain.gain.setTargetAtTime(this.gains[name] ?? 1, now, immediate || !this.music ? 0.08 : 0.6);
     src.connect(gain).connect(this.musicBus);
     src.start();
     this.music = { name, src, gain };
@@ -245,4 +216,25 @@ export class Audio {
     };
     setTimeout(chirp, 4000);
   }
+}
+
+// Pangkas hening di awal efek supaya terasa langsung saat tombol ditekan.
+function trimSilence(buf) {
+  const data = buf.getChannelData(0);
+  let start = 0;
+  while (start < data.length && Math.abs(data[start]) < 0.01) start++;
+  start = Math.max(0, start - Math.floor(buf.sampleRate * 0.005));
+  if (start < buf.sampleRate * 0.01 || start >= buf.length - 1) return buf;
+  const out = new AudioBuffer({ numberOfChannels: buf.numberOfChannels, length: buf.length - start, sampleRate: buf.sampleRate });
+  for (let c = 0; c < buf.numberOfChannels; c++) out.copyToChannel(buf.getChannelData(c).subarray(start), c);
+  return out;
+}
+
+function normalGain(buf, target) {
+  let peak = 0;
+  for (let c = 0; c < buf.numberOfChannels; c++) {
+    const d = buf.getChannelData(c);
+    for (let i = 0; i < d.length; i += 4) peak = Math.max(peak, Math.abs(d[i]));
+  }
+  return peak > 0 ? Math.min(3, target / peak) : 1;
 }
