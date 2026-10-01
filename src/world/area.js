@@ -200,6 +200,17 @@ export class Area {
     return this.displayHealth;
   }
 
+  // Mesh besar yang boleh menghalangi kamera (bangunan, pohon); tanah & rumput tidak termasuk.
+  occluders() {
+    const list = [];
+    this.props.traverse((o) => {
+      if (!o.isMesh) return;
+      const size = new THREE.Box3().setFromObject(o).getSize(new THREE.Vector3());
+      if (size.y > 1.6) list.push(o);
+    });
+    return list;
+  }
+
   // ---------- siklus hidup ----------
   onEnter() {}
   onExit() {}

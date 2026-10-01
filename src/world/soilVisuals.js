@@ -5,7 +5,7 @@ import { SOIL_BAD, SOIL_OK } from './diorama.js';
 import { createGrass, grassHeightAt } from './grass.js';
 import { rng, toon } from './builders.js';
 
-const GRASS_BASE_OK = 0x418c2e;
+const GRASS_BASE_OK = 0x5aa23a;
 const GRASS_BASE_BAD = 0x8c8660;
 const GRASS_TIP_OK = 0xb8e65a;
 const GRASS_WARM_OK = 0xdcf07a;
@@ -110,8 +110,9 @@ export class SoilVisuals {
     const tip = TMP3.setHex(GRASS_TIP_OK).lerp(TMP2.setHex(GRASS_TIP_BAD), bad);
     const warm = TMP4.setHex(GRASS_WARM_OK).lerp(TMP2.setHex(GRASS_TIP_BAD), bad);
     this.grass.setColors(base, tip, warm);
-    // Tanah = pangkal bilah yang teroklusi, supaya celah antar-rumput tidak terlihat.
-    this.island.grassMat.color.copy(base).multiplyScalar(0.8);
+    // Tanah berwarna sama dengan rata-rata rumput (bukan hijau gelap), jadi area tanpa rumput
+    // (sekitar rumah, pohon) tetap menyatu dengan padang.
+    this.island.grassMat.color.copy(base).lerp(tip, 0.45);
     this.island.soilMats.forEach((mat, i) => mat.color.setHex(SOIL_OK[i]).lerp(this.tmp.setHex(SOIL_BAD[i]), bad));
     if (this.foliageMat) this.foliageMat.color.copy(FOLIAGE_OK).lerp(FOLIAGE_BAD, bad);
     this.grassGroup.scale.y = 0.3 + 0.8 * h;

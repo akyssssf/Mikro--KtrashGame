@@ -109,7 +109,7 @@ const FRAGMENT_COLOR = `
   vec3 tipCol = mix(uTip, uTipWarm, smoothstep(0.55, 1.0, vRand));
   vec3 grassCol = mix(uBase, tipCol, pow(vT, 1.1)) * vVar;
   // Oklusi lembut di pangkal.
-  grassCol *= mix(0.78, 1.0, smoothstep(0.0, 0.45, vT));
+  grassCol *= mix(0.86, 1.0, smoothstep(0.0, 0.45, vT));
   // Kilau ujung saat tertiup angin.
   grassCol += vec3(0.08, 0.09, 0.03) * vGust * vT * vT;
   // Cahaya tembus: ujung bilah berpendar hangat saat kamera menghadap matahari.
