@@ -193,9 +193,11 @@ body.time-mode #toast, body.dialog-open #toast { bottom: auto; top: 110px; }
 #menu .stack { display: grid; gap: 10px; }
 #menu .row { justify-content: flex-start; }
 #menu .confirm { font-weight: 700; margin: 0 0 4px; }
-#menu .how { margin-top: 14px; border-top: 2px dashed rgba(23,50,77,.25); padding-top: 8px; }
-#menu .how summary { font-weight: 800; cursor: pointer; }
-#menu .controls { margin-top: 10px; font-size: 15px; font-weight: 600; display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; }
+#menu .how { margin-top: 14px; border-top: 2px dashed rgba(23,50,77,.25); padding-top: 10px; }
+#menu .how-btn svg { width: 22px; height: 22px; }
+#howto-wrap .controls { font-size: 17px; gap: 10px 14px; }
+#howto-wrap { z-index: 3; }
+.controls { margin-top: 4px; font-size: 15px; font-weight: 600; display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; }
 #menu .keys { display: flex; gap: 4px; flex-wrap: wrap; }
 #menu .foot { margin: 12px 0 0; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
 

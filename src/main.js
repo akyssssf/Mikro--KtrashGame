@@ -31,7 +31,7 @@ import { SoilSection } from './world/soilSection.js';
 import { anyMicro, captionFor, microLabel, rowsFor, villageAt } from './systems/projection.js';
 import { simulate, sliderFromYears } from './systems/timeSim.js';
 import { areaDamage } from './systems/soilHealth.js';
-import { basketPanel, menuPanel, Overlay, pausePanel, recyclePanel } from './ui/panels.js';
+import { basketPanel, howToPanel, menuPanel, Overlay, pausePanel, recyclePanel } from './ui/panels.js';
 import { playSplash, TitleScreen } from './ui/titleScreen.js';
 import { updateSeeThrough } from './world/seeThrough.js';
 
@@ -89,6 +89,7 @@ class Game {
       end: new EndScreen(this),
       overlay: new Overlay('panel'),
       menu: new Overlay('menu-wrap'),
+      howto: new Overlay('howto-wrap'),
       title: new TitleScreen(),
     };
     this.ui.prompt = this.ui.hud.prompt;
@@ -169,10 +170,13 @@ class Game {
             onContinue: () => this.#startGame(false),
             onNew: () => this.#startGame(true),
             onCodex: () => this.openCodex(),
+            onHowTo: () => this.ui.howto.show(howToPanel({ onClose: () => this.#closeHowTo() })),
           }));
         },
-        exit: (next) => { if (next !== 'codex') this.ui.menu.hide(); },
+        // Panel menu disembunyikan juga saat membuka Kartu Plastik (dulu bertumpuk).
+        exit: () => { this.ui.menu.hide(); this.ui.howto.hide(); },
         update: () => {
+          if (this.ui.howto.open && this.input.consume('pause')) this.#closeHowTo();
           // Fokus digeser ke kiri layar supaya pulau tampil di sebelah kanan panel menu.
           this.rig.setOverride(this.#menuPose());
         },
@@ -404,6 +408,11 @@ class Game {
     const special = { jaring: 'toast.netGot', lensa: 'toast.lensGot', pencapit: 'toast.grabberGot' }[tool];
     if (tool === 'tasKain') this.toast(t('toast.bagGot', { max: this.progress.capacity }), 'ok', 4000);
     else this.toast(special ? t(special) : t('toast.newTool', { tool: t(`tools.${tool}`) }), 'ok', 4000);
+  }
+
+  #closeHowTo() {
+    this.ui.howto.hide();
+    this.ui.menu.el.querySelector('.how-btn')?.focus({ preventScroll: true });
   }
 
   openCodex() {

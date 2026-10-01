@@ -20,7 +20,7 @@ export class Overlay {
   hide() { this.el.classList.add('hidden'); }
 }
 
-export function menuPanel({ hasSave, onContinue, onNew, onCodex }) {
+export function menuPanel({ hasSave, onContinue, onNew, onCodex, onHowTo }) {
   const stack = h('div', { class: 'stack' });
   const confirmBox = h('div', { class: 'stack hidden' },
     h('p', { class: 'confirm' }, t('menu.newGameConfirm')),
@@ -43,8 +43,8 @@ export function menuPanel({ hasSave, onContinue, onNew, onCodex }) {
   const codexBtn = button(t('menu.codex'), onCodex, 'alt');
   codexBtn.insertAdjacentHTML('afterbegin', UI_ICONS.codex);
   stack.append(codexBtn);
-  const controls = h('div', { class: 'controls', 'aria-label': t('menu.controlsTitle') },
-    TEXT.menu.controls.flatMap(([k, v]) => [h('span', { class: 'keys' }, k.split(' / ').map((x) => h('kbd', {}, x))), h('span', {}, v)]));
+  const howBtn = button(t('menu.controlsTitle'), onHowTo, 'ghost small how-btn');
+  howBtn.insertAdjacentHTML('afterbegin', UI_ICONS.howto);
   return h('section', { id: 'menu', class: 'card', role: 'dialog', 'aria-labelledby': 'menu-title' },
     h('h1', { id: 'menu-title', class: 'brand' },
       h('img', { class: 'logo', src: `${import.meta.env.BASE_URL}logo.png`, alt: t('game.logoAlt'), width: 760, height: 524 }),
@@ -52,9 +52,19 @@ export function menuPanel({ hasSave, onContinue, onNew, onCodex }) {
     ),
     h('p', { class: 'tagline' }, t('game.tagline')),
     stack, confirmBox,
-    h('details', { class: 'how' }, h('summary', {}, t('menu.controlsTitle')), controls),
+    h('div', { class: 'how' }, howBtn),
     h('p', { class: 'foot' }, t('menu.footer')),
   );
+}
+
+// Pop-up "Cara main": daftar tombol kontrol.
+export function howToPanel({ onClose }) {
+  const controls = h('div', { class: 'controls', 'aria-label': t('menu.controlsTitle') },
+    TEXT.menu.controls.flatMap(([k, v]) => [h('span', { class: 'keys' }, k.split(' / ').map((x) => h('kbd', {}, x))), h('span', {}, v)]));
+  return shell({
+    id: 'howto', title: t('menu.controlsTitle'), icon: 'howto', accent: 'sky', onClose, width: 'min(520px, 94vw)',
+    children: [controls, h('div', { class: 'cta' }, button(t('panel.close'), onClose))],
+  });
 }
 
 const CLOSE_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6 L18 18 M18 6 L6 18" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>';
