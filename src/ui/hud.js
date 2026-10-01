@@ -146,7 +146,8 @@ export class Hud {
 
   toast(msg, kind = 'info', ms = 2600) {
     const el = this.toastEl;
-    el.textContent = msg;
+    el.innerHTML = '';
+    el.append(h('span', { class: 'ico', 'aria-hidden': 'true' }, { ok: '✓', bad: '!', info: 'i' }[kind] ?? 'i'), h('span', {}, msg));
     el.className = `show ${kind} passthrough`;
     clearTimeout(this.toastTimer);
     this.toastTimer = setTimeout(() => el.classList.remove('show'), ms);

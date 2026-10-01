@@ -4,8 +4,8 @@ import { PLASTIC_CODES, PLASTICS } from '../data/plastics.js';
 import { ITEM_TYPES } from '../data/items.js';
 import { t, TEXT } from '../data/dialogs.id.js';
 import { makeItemModel } from '../world/items3d.js';
-import { button, codeTriangle, h } from './dom.js';
-import { Overlay } from './panels.js';
+import { codeTriangle, h } from './dom.js';
+import { Overlay, shell } from './panels.js';
 
 const FOOD_CLASS = { ya: 'yes', sekali: 'mid', tidak: 'no' };
 
@@ -46,14 +46,14 @@ export class Codex {
       }));
     }
     const detail = this.#detail(this.selected, prog.hasCard(this.selected));
-    const panel = h('section', { class: 'card panel', role: 'dialog', 'aria-labelledby': 'codex-title' },
-      h('header', {},
-        h('div', {}, h('h2', { id: 'codex-title' }, t('plastics.title')), h('p', { class: 'note', style: 'margin:2px 0 0' }, t('plastics.subtitle'))),
-        button(t('plastics.close'), () => this.game.closeCodex(), 'ghost small', 'Esc'),
-      ),
-      grid, detail,
-      h('p', { class: 'note' }, t('plastics.note'), ' ', t('plastics.source')),
-    );
+    const panel = shell({
+      id: 'codex', title: t('plastics.title'), icon: 'codex', accent: 'orange', onClose: () => this.game.closeCodex(),
+      children: [
+        h('p', { class: 'note', style: 'margin:0 0 4px' }, t('plastics.subtitle')),
+        grid, detail,
+        h('p', { class: 'note' }, t('plastics.note'), ' ', t('plastics.source')),
+      ],
+    });
     this.overlay.show(panel);
     panel.querySelector(`.codex-card[aria-pressed="true"]`)?.focus({ preventScroll: true });
     this.#mountPreview(panel.querySelector('.preview'), this.selected, prog.hasCard(this.selected));

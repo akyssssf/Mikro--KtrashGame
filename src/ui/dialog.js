@@ -32,6 +32,7 @@ export class DialogBox {
     this.index = 0;
     this.onDone = onDone;
     this.el.classList.remove('hidden');
+    document.body.classList.add('dialog-open');
     this.#show();
   }
 
@@ -67,6 +68,7 @@ export class DialogBox {
   finish() {
     if (!this.open) return;
     this.el.classList.add('hidden');
+    document.body.classList.remove('dialog-open');
     const cb = this.onDone;
     this.onDone = null;
     cb?.();

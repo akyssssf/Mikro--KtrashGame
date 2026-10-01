@@ -126,6 +126,8 @@ export const TEXT = {
     darto: 'Sayur Pak Darto',
   },
 
+  panel: { close: 'Tutup' },
+
   dialogUi: { next: 'Lanjut', last: 'Oke', skip: 'Lewati', label: 'Percakapan' },
 
   a11y: { done: ' (selesai)', locked: ' (terkunci)' },
@@ -413,6 +415,9 @@ export const TEXT = {
     title: 'Tempat Daur Ulang',
     intro: 'Pilih nasib sampah di keranjangmu.',
     order: 'Kurangi → Pakai ulang → Daur ulang → Buang',
+    steps: ['Kurangi', 'Pakai ulang', 'Daur ulang', 'Buang'],
+    reuseTitle: 'Bisa dipakai ulang di sini',
+    sortTitle: 'Isi keranjang untuk dipilah',
     startSort: 'Pilah & daur ulang ({n})',
     reuseBtn: 'Pakai ulang',
     empty: 'Keranjang kosong.',

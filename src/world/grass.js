@@ -55,7 +55,7 @@ function clumpGeometry(rand) {
 
 // Derau halus murah (tanpa tekstur) untuk petak tinggi & warna.
 const patch = (x, z) => 0.5 + 0.25 * Math.sin(x * 0.21 + Math.cos(z * 0.13) * 2) + 0.25 * Math.sin(z * 0.17 - x * 0.07 + Math.sin(x * 0.05) * 3);
-const tallness = (x, z) => THREE.MathUtils.smoothstep(patch(x, z), 0.35, 0.8);
+export const tallness = (x, z) => THREE.MathUtils.smoothstep(patch(x, z), 0.35, 0.8);
 
 // Perkiraan tinggi ujung rumput di suatu titik (untuk menaruh bunga di atasnya).
 export const grassHeightAt = (x, z) => 0.85 * (0.44 + tallness(x, z) * 0.5);
@@ -202,4 +202,58 @@ export function createGrass({ hw, hd, exclude, rand, clearSpots = [] }) {
       if (player) uniforms.uPlayer.value.copy(player);
     },
   };
+}
+
+// Bayangan lembut di tanah di bawah rumput (oklusi), supaya pangkal bilah menyatu dengan tanah.
+// Nilai 1 = terang (tanpa rumput), makin kecil = makin gelap. Dipetakan ke UV tutup atas pulau
+// (ExtrudeGeometry memakai koordinat bentuk: u = x, v = -z).
+export function groundShadeTexture(hw, hd, blocked) {
+  const W = 192;
+  const H = Math.round((W * hd) / hw);
+  const v = new Float32Array(W * H);
+  for (let j = 0; j < H; j++) {
+    for (let i = 0; i < W; i++) {
+      const x = ((i + 0.5) / W) * 2 * hw - hw;
+      const z = ((j + 0.5) / H) * 2 * hd - hd;
+      v[j * W + i] = blocked(x, z) ? 1 : 0.66 - 0.08 * tallness(x, z);
+    }
+  }
+  // Dua kali box blur supaya tepi bayangan lembut.
+  const tmp = new Float32Array(v.length);
+  for (let pass = 0; pass < 2; pass++) {
+    for (let j = 0; j < H; j++) {
+      for (let i = 0; i < W; i++) {
+        let sum = 0;
+        let n = 0;
+        for (let dj = -2; dj <= 2; dj++) {
+          for (let di = -2; di <= 2; di++) {
+            const ii = i + di;
+            const jj = j + dj;
+            if (ii < 0 || jj < 0 || ii >= W || jj >= H) continue;
+            sum += v[jj * W + ii];
+            n++;
+          }
+        }
+        tmp[j * W + i] = sum / n;
+      }
+    }
+    v.set(tmp);
+  }
+  const data = new Uint8Array(W * H * 4);
+  for (let j = 0; j < H; j++) {
+    // Baris tekstur: v = 0 di bawah = z paling besar (selatan).
+    const row = H - 1 - j;
+    for (let i = 0; i < W; i++) {
+      const g = Math.round(v[j * W + i] * 255);
+      data.set([g, g, g, 255], (row * W + i) * 4);
+    }
+  }
+  const tex = new THREE.DataTexture(data, W, H);
+  tex.magFilter = THREE.LinearFilter;
+  tex.minFilter = THREE.LinearFilter;
+  tex.colorSpace = THREE.NoColorSpace;
+  tex.repeat.set(1 / (2 * hw), 1 / (2 * hd));
+  tex.offset.set(0.5, 0.5);
+  tex.needsUpdate = true;
+  return tex;
 }

@@ -2,7 +2,7 @@
 // kejernihan air, dan partikel mikroplastik (untuk proyeksi). Semua berulang pakai InstancedMesh.
 import * as THREE from 'three';
 import { SOIL_BAD, SOIL_OK } from './diorama.js';
-import { createGrass, grassHeightAt } from './grass.js';
+import { createGrass, grassHeightAt, groundShadeTexture } from './grass.js';
 import { rng, toon } from './builders.js';
 
 const GRASS_BASE_OK = 0x5aa23a;
@@ -19,11 +19,22 @@ const FLOWER_COLORS = [0xffffff, 0xffd84a, 0xff8fb5, 0x8fd3ff, 0xffffff, 0xc5a3f
 const MICRO_COLORS = [0xffffff, 0xfde68a, 0x93c5fd, 0xfca5a5, 0xc4b5fd].map((c) => new THREE.Color(c));
 
 export class SoilVisuals {
-  constructor({ root, island, foliageMat, hw, hd, exclude, clearSpots = [], seed = 1, flowers = 220, worms = 8 }) {
+  constructor({ root, island, foliageMat, hw, hd, radius, exclude: excludeZones, clearSpots = [], seed = 1, flowers = 220, worms = 8 }) {
     this.island = island;
     this.foliageMat = foliageMat;
     this.water = [];
     const rand = rng(seed);
+    // Di luar pulau (sudut membulat) juga dianggap terlarang, supaya rumput tidak mengambang di atas air.
+    const r = radius ?? Math.min(hw, hd) * 0.3;
+    const outside = (x, z, margin = 0.7) => {
+      const ax = Math.abs(x);
+      const az = Math.abs(z);
+      if (ax > hw - margin || az > hd - margin) return true;
+      const cx = hw - r;
+      const cz = hd - r;
+      return ax > cx && az > cz && Math.hypot(ax - cx, az - cz) > r - margin;
+    };
+    const exclude = (x, z) => outside(x, z) || excludeZones(x, z);
     const spots = (n, pad = 1.2) => {
       const out = [];
       let guard = 0;
@@ -42,6 +53,8 @@ export class SoilVisuals {
 
     // Rumput stylized padat. Tinggi seluruh padang disetel lewat scale.y (murah).
     this.grass = createGrass({ hw, hd, exclude, rand, clearSpots });
+    island.grassMat.map = groundShadeTexture(hw, hd, exclude);
+    island.grassMat.needsUpdate = true;
     this.grassGroup = new THREE.Group();
     this.grassGroup.add(this.grass.mesh);
     root.add(this.grassGroup);

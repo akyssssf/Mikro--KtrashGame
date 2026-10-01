@@ -86,6 +86,7 @@ export const UI_ICONS = {
   soundOn: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 12 H11 L17 7 V25 L11 20 H6 Z" fill="#fff8e7" stroke="#17324d" stroke-width="2.5" stroke-linejoin="round"/><path d="M21 11 Q25 16 21 21 M24 8 Q30 16 24 24" stroke="#17324d" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>',
   soundOff: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 12 H11 L17 7 V25 L11 20 H6 Z" fill="#fff8e7" stroke="#17324d" stroke-width="2.5" stroke-linejoin="round"/><path d="M21 12 L28 20 M28 12 L21 20" stroke="#c0343a" stroke-width="3" stroke-linecap="round"/></svg>',
   pause: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="8" y="7" width="6" height="18" rx="2" fill="#fff8e7" stroke="#17324d" stroke-width="2.5"/><rect x="18" y="7" width="6" height="18" rx="2" fill="#fff8e7" stroke="#17324d" stroke-width="2.5"/></svg>',
+  recycle: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5 L21 13 H11 Z" fill="#d9f7e3" stroke="#17324d" stroke-width="2.2" stroke-linejoin="round"/><path d="M7 25 L4 17 L12 19 Z" fill="#d9f7e3" stroke="#17324d" stroke-width="2.2" stroke-linejoin="round"/><path d="M28 22 L20 27 V19 Z" fill="#d9f7e3" stroke="#17324d" stroke-width="2.2" stroke-linejoin="round"/><path d="M13 9 Q8 12 7 18 M20 24 Q14 27 9 23 M23 12 Q27 16 25 21" stroke="#17324d" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>',
   play: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M10 6 L26 16 L10 26 Z" fill="currentColor"/></svg>',
 };
 

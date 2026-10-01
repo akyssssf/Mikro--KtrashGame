@@ -50,6 +50,7 @@ export class Area {
       island: this.island,
       foliageMat: mats.foliage,
       hw, hd,
+      radius: r,
       seed: this.data.order * 13 + 3,
       exclude: (x, z) => this.excludes(x, z),
       clearSpots: this.data.items.filter((it) => it.floating === undefined).map((it) => [it.x, it.z]),

@@ -169,7 +169,10 @@ class Game {
         },
       },
       panel: {
-        enter: (prev, { content }) => this.ui.overlay.show(content),
+        enter: (prev, { content }) => {
+          this.ui.hud.setVisible(false);
+          this.ui.overlay.show(content);
+        },
         exit: () => this.ui.overlay.hide(),
         update: () => {
           if (this.input.consume('pause') || this.input.consume('inventory')) this.fsm.set('explore');
@@ -178,6 +181,7 @@ class Game {
       codex: {
         enter: (prev) => {
           this.codexReturn = prev === 'codex' ? this.codexReturn : prev;
+          this.ui.hud.setVisible(false);
           this.ui.codex.show();
         },
         exit: () => this.ui.codex.hide(),
@@ -233,7 +237,10 @@ class Game {
         update: (dt) => { this.rig.override.yaw += dt * 0.06; },
       },
       pause: {
-        enter: () => this.#showPause(),
+        enter: () => {
+          this.ui.hud.setVisible(false);
+          this.#showPause();
+        },
         exit: () => this.ui.overlay.hide(),
         update: () => { if (this.input.consume('pause')) this.fsm.set('explore'); },
       },
@@ -241,7 +248,14 @@ class Game {
   }
 
   #showPause() {
+    const q = this.quests.active;
+    const qText = TEXT.quests[q.id];
+    const quest = {
+      title: qText.title,
+      objectives: this.quests.objectives().map((o) => ({ text: qText.objectives[o.id], done: o.done, have: o.have, need: o.need })),
+    };
     this.ui.overlay.show(pausePanel({
+      quest,
       muted: this.audio.muted,
       saveOk: this.progress.saveOk,
       onResume: () => this.fsm.set('explore'),

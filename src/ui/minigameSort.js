@@ -6,6 +6,7 @@ import { t } from '../data/dialogs.id.js';
 import { makeItemModel } from '../world/items3d.js';
 import { canvasTexture, toon } from '../world/builders.js';
 import { button, codeBadge, h, uiRoot } from './dom.js';
+import { shell } from './panels.js';
 
 const BELT_TOP = 0.56;
 const BELT_HALF = 9.5;
@@ -156,18 +157,23 @@ export class SortGame {
     const acc = total ? this.ok / total : 0;
     const title = acc >= 0.9 ? t('sort.resultGreat') : acc >= 0.7 ? t('sort.resultGood') : t('sort.resultTry');
     const firstReward = !quit && total > 0 && this.game.quests.activeId === 'pilah';
-    const panel = h('section', { class: 'card panel', role: 'dialog', style: 'width:min(460px,94vw);text-align:center' },
-      h('h2', {}, total ? title : t('sort.title')),
-      h('p', { style: 'font-size:20px;font-weight:700' }, t('sort.resultBody', { ok: this.ok, bad: this.bad })),
-      quit && this.queue.length + this.items.length ? h('p', { class: 'note' }, t('sort.quitNote')) : null,
-      this.ok ? h('p', {}, t('sort.healthUp')) : null,
-      firstReward ? h('p', { style: 'font-weight:800;color:var(--green)' }, t('sort.reward')) : null,
-      button(t('sort.back'), () => this.game.endSort({ completed: !quit && total > 0, accuracy: acc })),
-    );
+    const starCount = total ? (acc >= 0.9 ? 3 : acc >= 0.7 ? 2 : 1) : 0;
+    const star = (on) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="${on ? '#f5b82e' : '#e7e2d4'}" stroke="#17324d" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
+    const panel = shell({
+      id: 'sortres', title: total ? title : t('sort.title'), icon: 'recycle', accent: 'green', width: 'min(460px,94vw)',
+      children: [
+        total ? h('div', { class: 'stars', role: 'img', 'aria-label': `${starCount}/3`, html: [0, 1, 2].map((i) => star(i < starCount)).join('') }) : null,
+        h('p', { class: 'center-text', style: 'font-size:20px;font-weight:700;margin:4px 0' }, t('sort.resultBody', { ok: this.ok, bad: this.bad })),
+        quit && this.queue.length + this.items.length ? h('p', { class: 'note center-text' }, t('sort.quitNote')) : null,
+        this.ok ? h('p', { class: 'center-text' }, t('sort.healthUp')) : null,
+        firstReward ? h('p', { class: 'lesson center-text' }, t('sort.reward')) : null,
+        h('div', { class: 'cta', style: 'justify-content:center' }, button(t('sort.back'), () => this.game.endSort({ completed: !quit && total > 0, accuracy: acc }), 'big')),
+      ],
+    });
     this.result.innerHTML = '';
     this.result.append(panel);
     this.result.classList.remove('hidden');
-    panel.querySelector('button').focus();
+    panel.querySelector('.cta button').focus();
   }
 
   resize() {
