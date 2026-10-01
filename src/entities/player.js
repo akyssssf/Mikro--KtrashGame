@@ -317,9 +317,27 @@ export class Player {
   }
 }
 
+// Bayangan kontak lembut di bawah kaki (gradasi radial). Sedikit di atas tanah + polygonOffset
+// supaya tidak berkedip/bergaris (z-fighting) dengan jalan setapak yang juga nyaris rata tanah.
+let blobTexture = null;
 function blobShadow() {
-  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.45, 16), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.18, depthWrite: false }));
+  if (!blobTexture) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const ctx = c.getContext('2d');
+    const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, 'rgba(0,0,0,0.35)');
+    grad.addColorStop(0.6, 'rgba(0,0,0,0.18)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 64, 64);
+    blobTexture = new THREE.CanvasTexture(c);
+  }
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), new THREE.MeshBasicMaterial({
+    map: blobTexture, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4,
+  }));
   shadow.rotation.x = -Math.PI / 2;
-  shadow.position.y = 0.03;
+  shadow.position.y = 0.06;
+  shadow.renderOrder = 2;
   return shadow;
 }
