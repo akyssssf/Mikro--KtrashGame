@@ -56,6 +56,7 @@ export class AreaManager {
     g.player.cancelWalk();
     if (from) g.player.heading = Math.atan2(-spot.x, -spot.z);
     g.cing.position.set(spot.x + 1.2, 0, spot.z + 1.4);
+    g.cing.resetTrail();
     g.rig.setOccluders(area.occluders());
     g.rig.follow(g.player.position, g.player.heading);
     g.rig.snap();

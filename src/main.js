@@ -581,7 +581,7 @@ class Game {
       this.cing.setMood(moodOf(ah));
     }
     this.cing.setAlert(!this.progress.flag('talked_cing') || this.dialogQueue.length > 0);
-    this.cing.update(dt, this.time, this.player);
+    this.cing.update(dt, this.time, this.player, this.collision);
     // Naik ke lantai jembatan (halus), turun lagi di tanah.
     if (area) {
       for (const who of [this.player, this.cing]) {

@@ -6,6 +6,7 @@ import { cloneAsset } from '../core/assets.js';
 const HAPPY = new THREE.Color(0xf28ba8);
 const TIRED = new THREE.Color(0xb9a3a6);
 const SEGMENTS = 6;
+const FOLLOW_GAP = 1.8;
 const ASSET_MOODS = { ceria: 'cing_happy', biasa: 'cing_neutral', lesu: 'cing_tired' };
 const ASSET_SCALE = 0.55;
 const WHITE = new THREE.Color(0xffffff);
@@ -118,6 +119,9 @@ export class Cing {
     this.group.add(this.marker);
   }
 
+  // Hapus jejak saat pindah area (posisi lama tidak berlaku lagi).
+  resetTrail() { this.trail = []; }
+
   setAlert(on) { this.marker.visible = on; }
 
   setMood(mood) {
@@ -133,28 +137,49 @@ export class Cing {
     else this.bodyMat.color.copy(TIRED).lerp(HAPPY, k);
   }
 
-  update(dt, time, player) {
+  // Mengikuti jejak langkah pemain (bukan titik di samping), jadi tetap di jalur yang bisa dilalui
+  // seperti jembatan. Posisi juga melewati kolisi supaya tidak masuk air atau menembus bangunan.
+  update(dt, time, player, collision) {
     const energy = 0.35 + 0.65 * (this.health / 100);
     const motion = this.reducedMotion ? 0.3 : 1;
     let speed = 0;
     if (this.following && player) {
-      const back = new THREE.Vector3(Math.sin(player.heading), 0, Math.cos(player.heading)).multiplyScalar(-1.9);
-      const side = new THREE.Vector3(Math.cos(player.heading), 0, -Math.sin(player.heading)).multiplyScalar(1.2);
-      const goal = player.position.clone().add(back).add(side);
-      const d = goal.distanceTo(this.position);
-      if (d > 0.35) {
+      const trail = this.trail ?? (this.trail = []);
+      const head = trail[0];
+      if (!head || Math.hypot(head.x - player.position.x, head.z - player.position.z) > 0.25) {
+        trail.unshift({ x: player.position.x, z: player.position.z });
+        if (trail.length > 40) trail.length = 40;
+      }
+      // Titik di jejak sejauh ±1.8 m di belakang pemain.
+      let goal = trail[trail.length - 1];
+      let walked = 0;
+      for (let i = 1; i < trail.length; i++) {
+        walked += Math.hypot(trail[i].x - trail[i - 1].x, trail[i].z - trail[i - 1].z);
+        if (walked >= FOLLOW_GAP) { goal = trail[i]; break; }
+      }
+      const dx = goal.x - this.position.x;
+      const dz = goal.z - this.position.z;
+      const d = Math.hypot(dx, dz);
+      const toPlayer = Math.hypot(player.position.x - this.position.x, player.position.z - this.position.z);
+      if (d > 0.3 && toPlayer > 1.2) {
         const step = Math.min(d, dt * Math.min(9, 2 + d * 2.2));
-        const dir = goal.sub(this.position).normalize();
-        this.position.addScaledVector(dir, step);
-        speed = step / Math.max(dt, 1e-4);
-        const target = Math.atan2(dir.x, dir.z);
+        const p = { x: this.position.x + (dx / d) * step, z: this.position.z + (dz / d) * step };
+        collision?.resolve(p, 0.3);
+        speed = Math.hypot(p.x - this.position.x, p.z - this.position.z) / Math.max(dt, 1e-4);
+        this.position.x = p.x;
+        this.position.z = p.z;
+        const target = Math.atan2(dx, dz);
         const diff = Math.atan2(Math.sin(target - this.heading), Math.cos(target - this.heading));
         this.heading += diff * Math.min(1, dt * 8);
-      } else if (player) {
-        const toP = player.position.clone().sub(this.position);
-        const target = Math.atan2(toP.x, toP.z);
+      } else {
+        const target = Math.atan2(player.position.x - this.position.x, player.position.z - this.position.z);
         const diff = Math.atan2(Math.sin(target - this.heading), Math.cos(target - this.heading));
         this.heading += diff * Math.min(1, dt * 3);
+      }
+      // Tertinggal terlalu jauh (mis. terhalang): lompat ke jejak terdekat di belakang pemain.
+      if (toPlayer > 8) {
+        this.position.x = goal.x;
+        this.position.z = goal.z;
       }
     }
     this.group.rotation.y = this.heading;
