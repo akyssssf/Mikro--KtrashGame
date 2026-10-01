@@ -22,10 +22,11 @@ export const TEXT = {
     controlsTitle: 'Cara main',
     footer: 'Game edukasi 7 jenis plastik · untuk SD sampai SMA',
     controls: [
-      ['W A S D / panah', 'Berjalan (atau klik tanah)'],
+      ['W A S D', 'Berjalan (atau klik tanah)'],
+      ['← → ↑ ↓', 'Putar kamera'],
       ['Shift', 'Lari'],
       ['E / Spasi', 'Pungut, bicara, pakai'],
-      ['Q / R', 'Putar kamera (atau seret mouse)'],
+      ['Q / R', 'Putar kamera 45°'],
       ['I', 'Buka keranjang'],
       ['K', 'Kartu Plastik'],
       ['M', 'Suara nyala/mati'],
@@ -324,7 +325,7 @@ export const TEXT = {
     cingWaiting: [
       { who: 'cing', text: 'Halo! Aku <b>Cing</b>, cacing tanah penjaga Desa Lestari.' },
       { who: 'cing', text: 'Tanah desa kita sedang sakit karena sampah plastik. Lihat, rumputnya kusam.' },
-      { who: 'cing', text: 'Jalan pakai <b>WASD</b> atau klik tanah. Dekati sampah, lalu tekan <b>E</b>.' },
+      { who: 'cing', text: 'Jalan pakai <b>WASD</b> atau klik tanah, putar kamera pakai <b>tombol panah</b>. Dekati sampah, lalu tekan <b>E</b>.' },
       { who: 'cing', text: 'Coba pungut 3 sampah di sekitar lapangan, ya!' },
     ],
     cingIdle: {

@@ -409,3 +409,47 @@ h3.sec { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; colo
 #title { overflow: hidden; }
 /* Layar tegak (HP): video diperlebar agar logo tetap besar; sisi kirinya kosong jadi aman terpotong. */
 @media (max-aspect-ratio: 1/1) { #title video { width: 185vw; max-width: none; } }
+
+/* ---------- halftone (titik-titik ala komik) ---------- */
+/* Ukuran titik dianimasikan lewat @property supaya bisa "tumbuh" halus saat hover. */
+@property --dot { syntax: '<length>'; inherits: false; initial-value: 0px; }
+.btn, .icon-btn, .codex-card, .close-btn { position: relative; isolation: isolate; --ht: rgba(255, 255, 255, .34); }
+.btn.ghost, .btn.warn, .icon-btn, .codex-card, .close-btn { --ht: rgba(23, 50, 77, .16); }
+.btn.alt { --ht: rgba(255, 255, 255, .45); }
+.btn::before, .icon-btn::before, .codex-card::before, .close-btn::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background-image: radial-gradient(circle, var(--ht) var(--dot), transparent calc(var(--dot) + .6px));
+  background-size: 8px 8px; background-position: 0 0;
+  /* Titik membesar ke pojok kanan bawah, menghilang ke kiri atas (gradasi halftone). */
+  -webkit-mask-image: linear-gradient(125deg, transparent 18%, #000 85%); mask-image: linear-gradient(125deg, transparent 18%, #000 85%);
+  opacity: 0; transition: opacity .18s ease, --dot .25s cubic-bezier(.3, 1.6, .5, 1);
+}
+.btn:hover:not(:disabled)::before, .icon-btn:hover::before, .codex-card:hover::before, .close-btn:hover::before,
+.btn:focus-visible::before, .icon-btn:focus-visible::before, .codex-card:focus-visible::before {
+  opacity: 1; --dot: 2.6px; animation: htDrift 1.6s linear infinite;
+}
+.codex-card[aria-pressed="true"]::before { opacity: 1; --dot: 2px; --ht: rgba(240, 138, 44, .35); }
+@keyframes htDrift { to { background-position: 8px 8px; } }
+/* Kilau tipis menyapu tombol saat hover. */
+.btn::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, .35) 50%, transparent 65%) no-repeat;
+  background-size: 250% 100%; background-position: 130% 0; }
+.btn:hover:not(:disabled)::after { background-position: -30% 0; transition: background-position .55s ease; }
+.btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 0 var(--ink); }
+
+/* Kepala panel: halftone statis di sisi kanan sebagai hiasan. */
+.shell-head { position: relative; isolation: isolate; }
+.shell-head::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, .22) 2.2px, transparent 2.8px); background-size: 9px 9px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 45%, #000 100%); mask-image: linear-gradient(90deg, transparent 45%, #000 100%); }
+.accent-orange .shell-head::after { background-image: radial-gradient(circle, rgba(23, 50, 77, .14) 2.2px, transparent 2.8px); }
+@media (prefers-reduced-motion: reduce) { .btn::before, .icon-btn::before, .codex-card::before { animation: none !important; } }
+
+/* Kartu HUD, menu & dialog: hiasan halftone tipis di pojok kanan atas (senada dengan tombol). */
+#hud-soil, #menu { position: relative; }
+#hud-quest::after, #hud-soil::after, #hud-bottom::after, #menu::after, #dialog::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background-image: radial-gradient(circle, rgba(23, 50, 77, .09) 2px, transparent 2.6px); background-size: 9px 9px;
+  -webkit-mask-image: radial-gradient(120% 120% at 100% 0%, #000 0%, transparent 45%);
+  mask-image: radial-gradient(120% 120% at 100% 0%, #000 0%, transparent 45%);
+}

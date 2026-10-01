@@ -63,6 +63,14 @@ export class CameraRig {
     this.idle = 0;
   }
 
+  // Tombol panah: x = putar kiri/kanan, y = dongak atas/bawah (−1..1), per detik.
+  keyRotate(x, y, dt) {
+    if (!x && !y) return;
+    this.goalYaw -= x * 2.0 * dt;
+    this.goalPitch = THREE.MathUtils.clamp(this.goalPitch - y * 0.9 * dt, MIN_PITCH, MAX_PITCH);
+    this.idle = 0;
+  }
+
   zoom(delta) {
     this.goalDistance = THREE.MathUtils.clamp(this.goalDistance * (1 + delta * 0.001), MIN_DIST, MAX_DIST);
   }

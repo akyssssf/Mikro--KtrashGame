@@ -3,10 +3,15 @@
 import { Emitter } from './events.js';
 
 const BINDINGS = {
-  up: ['KeyW', 'ArrowUp'],
-  down: ['KeyS', 'ArrowDown'],
-  left: ['KeyA', 'ArrowLeft'],
-  right: ['KeyD', 'ArrowRight'],
+  up: ['KeyW'],
+  down: ['KeyS'],
+  left: ['KeyA'],
+  right: ['KeyD'],
+  // Panah = kamera (kiri/kanan putar, atas/bawah dongak).
+  camLeft: ['ArrowLeft'],
+  camRight: ['ArrowRight'],
+  camUp: ['ArrowUp'],
+  camDown: ['ArrowDown'],
   run: ['ShiftLeft', 'ShiftRight'],
   interact: ['KeyE', 'Space', 'Enter', 'NumpadEnter'],
   rotateLeft: ['KeyQ'],

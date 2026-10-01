@@ -103,9 +103,6 @@ class Game {
     this.fsm = new StateMachine(this.#states());
 
     this.progress.on('change', (e) => this.#onProgress(e));
-    this.input.on('drag', ({ dx, dy }) => {
-      if (this.fsm.is('explore', 'timeGate')) this.rig.drag(dx, dy);
-    });
     this.input.on('zoom', ({ delta }) => {
       if (this.fsm.is('explore')) this.rig.zoom(delta);
     });
@@ -243,6 +240,7 @@ class Game {
         },
         update: (dt) => {
           this.ui.time.update(dt);
+          this.#arrowCamera(dt);
           if (this.input.consume('pause')) this.ui.time.finish();
           else if (this.input.consume('interact')) this.ui.time.togglePlay();
         },
@@ -588,6 +586,14 @@ class Game {
     this.ui.hud.refresh();
   }
 
+  // Kamera diputar dengan tombol panah (seret mouse tidak lagi memutar kamera).
+  #arrowCamera(dt) {
+    const i = this.input;
+    const x = (i.down('camRight') ? 1 : 0) - (i.down('camLeft') ? 1 : 0);
+    const y = (i.down('camUp') ? 1 : 0) - (i.down('camDown') ? 1 : 0);
+    this.rig.keyRotate(x, y, dt);
+  }
+
   // ---------------- loop ----------------
   #updateExplore(dt) {
     const inp = this.input;
@@ -596,6 +602,7 @@ class Game {
     if (inp.consume('inventory')) { this.openBasket(); return; }
     if (inp.consume('rotateLeft')) this.rig.rotate(-1);
     if (inp.consume('rotateRight')) this.rig.rotate(1);
+    this.#arrowCamera(dt);
     if (this.dialogQueue.length && !this.areas.busy) {
       const d = this.dialogQueue.shift();
       this.fsm.set('dialog', d);
