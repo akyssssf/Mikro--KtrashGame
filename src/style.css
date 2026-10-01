@@ -187,8 +187,8 @@ body.time-mode #toast, body.dialog-open #toast { bottom: auto; top: 110px; }
   background: linear-gradient(90deg, rgba(11, 30, 51, .38) 0%, rgba(11, 30, 51, .12) 45%, transparent 70%); }
 #menu { width: min(440px, 92vw); padding: 24px 26px 18px; border-radius: 26px; box-shadow: 0 7px 0 var(--ink); }
 #menu .brand { display: block; margin: -6px 0 0; }
-#menu .logo { display: block; width: 100%; height: auto; margin: -8px auto -4px; animation: bob 3s ease-in-out infinite; }
-.loading-logo { display: block; width: 100%; height: auto; margin: -6px auto 6px; animation: bob 1.6s ease-in-out infinite; }
+#menu .logo { display: block; width: 100%; height: auto; margin: -8px auto -4px; }
+.loading-logo { display: block; width: 100%; height: auto; margin: -6px auto 6px; }
 #menu .tagline { font-size: 18px; font-weight: 600; line-height: 1.35; margin: 12px 0 18px; color: var(--ink-soft); }
 #menu .stack { display: grid; gap: 10px; }
 #menu .row { justify-content: flex-start; }
@@ -322,7 +322,6 @@ details.lanjut p { margin: 6px 0; font-weight: 600; line-height: 1.3; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loading-logo, #menu .logo { animation: none; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
   .btn:hover { transform: none; }
 }
