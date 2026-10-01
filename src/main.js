@@ -349,9 +349,8 @@ class Game {
       // Video pembuka cerita sebelum main baru.
       this.starting = true;
       this.ui.menu.hide();
-      this.audio.silenceMusic(true);
-      await playOpening({ muted: this.audio.muted, reducedMotion: this.reducedMotion });
-      this.audio.silenceMusic(false);
+      // Lagu menu tetap berjalan; opening hanya menambah narasi.
+      await playOpening({ audio: this.audio, reducedMotion: this.reducedMotion });
       this.starting = false;
     }
     this.hasSave = true;

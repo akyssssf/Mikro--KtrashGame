@@ -14,6 +14,8 @@ const SFX_GAIN = {
   net_splash: 0.7, basket_full: 0.7, card_unlock: 0.8, quest_done: 0.85, sort_correct: 0.7, soft_wrong: 0.6,
 };
 const MUSIC_TRACKS = ['main_theme', 'desa_ceria'];
+// Suara panjang yang waktunya penting: jangan dipangkas heningnya.
+const NO_TRIM = [...MUSIC_TRACKS, 'narasi_opening'];
 
 export class Audio {
   constructor(muted = false) {
@@ -36,8 +38,8 @@ export class Audio {
         const data = await (await fetch(url)).arrayBuffer();
         const buf = await decoder.decodeAudioData(data);
         const music = MUSIC_TRACKS.includes(name);
-        this.buffers[name] = music ? buf : trimSilence(buf);
-        this.gains[name] = normalGain(buf, music ? 0.8 : SFX_PEAK);
+        this.buffers[name] = NO_TRIM.includes(name) ? buf : trimSilence(buf);
+        this.gains[name] = name === 'narasi_opening' ? normalGain(buf, 0.95) : normalGain(buf, music ? 0.8 : SFX_PEAK);
       } catch {
         // Efek ini akan memakai suara sintetis.
       }
@@ -175,15 +177,29 @@ export class Audio {
     this.music = { name, src, gain };
   }
 
-  // Diamkan musik game (mis. selama video pembuka yang punya suaranya sendiri).
-  silenceMusic(on) {
-    this.musicSilenced = on;
-    if (this.ctx) this.musicBus.gain.setTargetAtTime(on ? 0 : MUSIC_VOLUME, this.ctx.currentTime, on ? 0.15 : 0.6);
+  // Kecilkan musik (mis. saat narator bicara di opening). k = pengali volume 0..1.
+  duckMusic(k) {
+    this.musicDucked = k < 1;
+    if (this.ctx) this.musicBus.gain.setTargetAtTime(MUSIC_VOLUME * k, this.ctx.currentTime, 0.25);
+  }
+
+  // Putar suara narasi; kembalikan { time(): detik sejak mulai, stop() } (jam audio = sinkron).
+  playVoice(name) {
+    const buf = this.buffers[name];
+    if (!this.ctx || !buf) return null;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    const g = this.ctx.createGain();
+    g.gain.value = this.muted ? 0 : (this.gains[name] ?? 1);
+    src.connect(g).connect(this.master);
+    const start = this.ctx.currentTime + 0.05;
+    src.start(start);
+    return { time: () => this.ctx.currentTime - start, stop: () => { try { src.stop(); } catch { /* sudah berhenti */ } } };
   }
 
   // Suasana musik mengikuti tanah (0–100): kusam → redup & teredam. dreamy: efek Gerbang Waktu.
   setMusicMood(health, dreamy = false) {
-    if (!this.ctx || this.musicSilenced) return;
+    if (!this.ctx || this.musicDucked) return;
     const k = Math.max(0, Math.min(1, health / 100));
     const cutoff = dreamy ? 1400 : 900 * Math.pow(18000 / 900, k);
     const now = this.ctx.currentTime;

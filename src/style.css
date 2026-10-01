@@ -480,10 +480,10 @@ h3.sec { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; colo
 .end-cing { width: 140px; height: 140px; }
 
 /* ---------- video pembuka ---------- */
-#opening { position: fixed; inset: 0; z-index: 35; background: #0b0c10; display: grid; place-items: center; opacity: 0; transition: opacity .5s; }
+#opening { position: fixed; inset: 0; z-index: 35; background: #f6efe1; display: grid; place-items: center; opacity: 0; transition: opacity .5s; }
 #opening.on { opacity: 1; }
 #opening.out { opacity: 0; pointer-events: none; }
-#opening video { width: 100%; height: 100%; object-fit: contain; }
+#opening canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 #opening .skip { position: absolute; right: 20px; bottom: 20px; gap: 10px; }
 #opening .skip .key { position: static; }
 

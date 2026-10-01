@@ -14,6 +14,17 @@ export const TEXT = {
     studioAlt: '21 Creative',
   },
 
+  // Teks narasi opening (sama dengan rekaman suara).
+  opening: {
+    lines: [
+      'Dulu, Desa Lestari hijau dan subur.',
+      'Lalu, sampah plastik mulai berdatangan…',
+      'Panas dan hujan memecahnya jadi serpihan kecil.\nNamanya… mikroplastik!',
+      'Di dalam tanah, Cing dan teman-temannya jadi kesulitan.',
+      'Tapi belum terlambat! Ayo bantu Cing menjaga tanah!',
+    ],
+  },
+
   mobile: {
     title: 'Siap bermain?',
     rotate: 'Putar HP-mu ke posisi horizontal (mendatar) supaya desanya terlihat luas.',
