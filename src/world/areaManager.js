@@ -1,5 +1,6 @@
-// Memuat/mengganti area dengan transisi fade. Area dibangun sekali lalu disimpan.
+// Memuat/mengganti area dengan transisi halftone. Area dibangun sekali lalu disimpan.
 import { AREA_DATA } from './areaRegistry.js';
+import { AreaTransition } from '../ui/areaTransition.js';
 
 const areaModules = import.meta.glob('./areas/*.js', { eager: true });
 const AREA_CLASSES = Object.fromEntries(
@@ -70,10 +71,18 @@ export class AreaManager {
     this.busy = true;
     const g = this.game;
     g.audio.whoosh();
-    await g.ui.fade(true);
-    this.enter(id, from);
-    g.ui.banner(id);
-    await g.ui.fade(false);
+    if (g.reducedMotion) {
+      await g.ui.fade(true);
+      this.enter(id, from);
+      g.ui.banner(id);
+      await g.ui.fade(false);
+    } else {
+      this.wipe ??= new AreaTransition();
+      await this.wipe.cover(id);
+      this.enter(id, from);
+      await this.wipe.reveal();
+      g.ui.banner(id);
+    }
     this.busy = false;
     g.onAreaEntered(id, from);
   }

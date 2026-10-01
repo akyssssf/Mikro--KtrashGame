@@ -455,3 +455,19 @@ h3.sec { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; colo
   -webkit-mask-image: radial-gradient(120% 120% at 100% 0%, #000 0%, transparent 45%);
   mask-image: radial-gradient(120% 120% at 100% 0%, #000 0%, transparent 45%);
 }
+
+/* ---------- transisi pindah area (halftone) ---------- */
+.area-wipe { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 22; pointer-events: none; display: none; }
+.area-wipe.on { display: block; pointer-events: auto; }
+.area-wipe-label { position: fixed; inset: 0; z-index: 23; pointer-events: none; display: grid; place-content: center; justify-items: center; gap: 6px;
+  opacity: 0; transform: scale(.85); transition: opacity .2s, transform .35s cubic-bezier(.3, 1.6, .5, 1); color: #fff; }
+.area-wipe-label.on { opacity: 1; transform: none; }
+.area-wipe-label .cing { width: 120px; height: 120px; animation: wipeHop .55s ease-in-out infinite alternate; filter: drop-shadow(0 6px 0 rgba(11, 30, 51, .35)); }
+.area-wipe-label .cing svg { width: 100%; height: 100%; }
+.area-wipe-label b { font-size: clamp(30px, 5vw, 48px); font-weight: 800; -webkit-text-stroke: 8px var(--ink); paint-order: stroke fill; line-height: 1; }
+.area-wipe-label .dots { display: flex; gap: 8px; margin-top: 6px; }
+.area-wipe-label .dots i { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 3px solid var(--ink); animation: wipeDot .9s ease-in-out infinite; }
+.area-wipe-label .dots i:nth-child(2) { animation-delay: .15s; }
+.area-wipe-label .dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes wipeHop { from { transform: translateY(0) scaleY(.94); } to { transform: translateY(-16px) scaleY(1.04); } }
+@keyframes wipeDot { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
