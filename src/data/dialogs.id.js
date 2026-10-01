@@ -23,6 +23,9 @@ export const TEXT = {
       'Di dalam tanah, Cing dan teman-temannya jadi kesulitan.',
       'Tapi belum terlambat! Ayo bantu Cing menjaga tanah!',
     ],
+    timePassing: '{n} tahun kemudian…',
+    microLabel: 'mikroplastik!',
+    microNote: 'lebih kecil dari 5 mm',
   },
 
   mobile: {

@@ -110,6 +110,7 @@ export function playOpening({ audio, reducedMotion = false } = {}) {
     document.body.append(el);
     const scene = new OpeningScene(canvas);
     scene.resize();
+    scene.warmUp();
     const onResize = () => scene.resize();
     window.addEventListener('resize', onResize);
     const voice = audio?.playVoice('narasi_opening');
