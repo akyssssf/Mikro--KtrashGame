@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { enableSeeThrough } from '../world/seeThrough.js';
 
 const DEG = Math.PI / 180;
 const MIN_PITCH = 8 * DEG;
@@ -6,10 +7,9 @@ const MAX_PITCH = 62 * DEG;
 const MIN_DIST = 5;
 const MAX_DIST = 15;
 const IDLE_BEFORE_RECENTER = 1.6;
-const MIN_BLOCKED = 2.2;
 
 // Kamera RPG orang ketiga: rendah di belakang pemain, horizon terlihat.
-// Diputar dengan seret mouse / Q-R, zoom dengan roda, dan pelan-pelan kembali ke belakang pemain saat berjalan.
+// Diputar dengan tombol panah / Q-R, zoom dengan roda, dan pelan-pelan kembali ke belakang pemain saat berjalan.
 export class CameraRig {
   constructor(camera) {
     this.camera = camera;
@@ -28,26 +28,12 @@ export class CameraRig {
     this.idle = IDLE_BEFORE_RECENTER;
     this.heading = 0;
     this.speed = 0;
-    // Penghalang (rumah, pohon) yang membuat kamera maju agar pemain tetap terlihat.
-    this.occluders = [];
-    this.raycaster = new THREE.Raycaster();
-    this.blockDist = Infinity;
-    this.frame = 0;
   }
 
+  // Penghalang (rumah, pohon) tidak lagi membuat kamera maju: bagiannya yang menutupi
+  // pemain dibuat tembus pandang (lihat world/seeThrough.js).
   setOccluders(meshes) {
-    this.occluders = meshes;
-    this.blockDist = Infinity;
-  }
-
-  // Jarak aman terdekat di sepanjang garis pemain→kamera (Infinity bila bebas).
-  #checkBlock(focus, yaw, pitch, distance) {
-    const h = Math.cos(pitch);
-    const dir = new THREE.Vector3(Math.sin(yaw) * h, Math.sin(pitch), Math.cos(yaw) * h);
-    this.raycaster.set(focus, dir);
-    this.raycaster.far = distance;
-    const hit = this.raycaster.intersectObjects(this.occluders, false)[0];
-    return hit ? Math.max(MIN_BLOCKED, hit.distance - 0.4) : Infinity;
+    for (const m of meshes) [].concat(m.material).forEach(enableSeeThrough);
   }
 
   // Putar tetap 45° (tombol Q/R).
@@ -132,15 +118,8 @@ export class CameraRig {
     this.focus.lerp(o?.focus ?? this.goalFocus, k);
     this.yaw += (goalYaw - this.yaw) * k;
     this.pitch += ((o?.pitch ?? this.goalPitch) - this.pitch) * k;
-    let goalDist = o?.distance ?? this.goalDistance;
-    if (!o && this.occluders.length) {
-      // Cek tiap 3 frame (raycast ke mesh gabungan cukup murah dengan jeda ini).
-      if (this.frame++ % 3 === 0) this.blockDist = this.#checkBlock(this.focus, this.yaw, this.pitch, this.goalDistance);
-      goalDist = Math.min(goalDist, this.blockDist);
-    }
-    // Maju cepat saat terhalang, mundur pelan setelah bebas.
-    const kd = goalDist < this.distance && !o ? 1 - Math.exp(-dt * 18) : k;
-    this.distance += (goalDist - this.distance) * kd;
+    const goalDist = o?.distance ?? this.goalDistance;
+    this.distance += (goalDist - this.distance) * k;
     if (o?.yaw !== undefined) this.goalYaw = this.yaw;
     this.#apply(this.focus, this.yaw, this.distance, this.pitch);
   }

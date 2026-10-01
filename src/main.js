@@ -33,6 +33,7 @@ import { simulate, sliderFromYears } from './systems/timeSim.js';
 import { areaDamage } from './systems/soilHealth.js';
 import { basketPanel, menuPanel, Overlay, pausePanel, recyclePanel } from './ui/panels.js';
 import { playSplash, TitleScreen } from './ui/titleScreen.js';
+import { updateSeeThrough } from './world/seeThrough.js';
 
 // Layar judul: kamera mendongak ke langit, lalu turun ke pose menu setelah diketuk.
 const TITLE_TILT = 1.25;
@@ -654,6 +655,9 @@ class Game {
     this.sky.update(dt);
     this.ocean.update(dt);
     this.rig.update(dt);
+    // Objek yang menutupi pemain dibuat tembus pandang (bukan kamera maju).
+    this.seeThroughAt = (this.seeThroughAt ?? new THREE.Vector3()).copy(this.player.position).setY(this.player.position.y + 1.1);
+    updateSeeThrough(this.camera, this.renderer, this.seeThroughAt, this.player.group.visible && !this.rig.override);
     // Kotak bayangan digeser ke depan kamera, karena kamera rendah melihat jauh ke depan.
     const ahead = 7;
     this.shadowFocus.set(this.rig.focus.x - Math.sin(this.rig.yaw) * ahead, 0, this.rig.focus.z - Math.cos(this.rig.yaw) * ahead);

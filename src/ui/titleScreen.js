@@ -35,7 +35,8 @@ export async function playSplash() {
     img.src = `${BASE}${logo.src}`;
     img.alt = logo.alt;
     img.className = logo.dark ? 'studio' : 'uni';
-    await img.decode().catch(() => {});
+    // decode() bisa tertahan saat tab tidak terlihat; jangan sampai splash macet.
+    await Promise.race([img.decode().catch(() => {}), sleep(1200)]);
     splash.classList.toggle('dark', logo.dark);
     await sleep(logo.dark ? 450 : 50);
     img.classList.add('on');
