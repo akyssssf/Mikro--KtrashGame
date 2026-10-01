@@ -29,7 +29,7 @@ Konsep pulau-pulau di tengah laut **diganti**. Tema game ini tanah, jadi dunia s
 - Antar area dihubungkan **jalan desa dan gapura**, bukan menyeberang laut. Game memakai transisi layar saat melewati gapura.
 
 ### Yang sudah ada di game (jangan didesain ulang dari nol)
-- **Desa Lestari (hub)**: area ±48 × 40 m, sumur, Tempat Daur Ulang, **Gerbang Waktu** (lengkung batu), papan petunjuk ke area lain. Saat ini masih berbentuk pulau berlaut; **tepinya akan diganti menjadi lereng lembah** sesuai konsep baru.
+- **Desa Lestari (hub)**: area ±48 × 40 m, sumur, Tempat Daur Ulang, **Gerbang Waktu** (lengkung batu), papan petunjuk ke area lain. Saat ini masih berbentuk pulau berlaut; **tepinya akan diganti menjadi lereng lembah** dan ukurannya **diperbesar** sesuai aturan ukuran di bawah. Sungai dan Pasar juga diperbesar.
 - **Sungai (kode 1 PET)**: ambil jaring di pondok Pak Udin, pungut 6 botol PET (sebagian di air), pasang Lensa Waktu untuk membuka jalan yang tertutup daun.
 - **Pasar (kode 4 LDPE)**: kumpulkan 5 kresek, tukar dengan tas kain di lapak Bu Sari, bersihkan saluran yang tersumbat.
 - Sistem yang sudah jalan dan bisa dipakai di semua map:
@@ -82,7 +82,7 @@ Side quest memberi **stiker paspor** (berbeda dari cap area) dan item kosmetik k
 ### TAHAP B — Lembar desain per map (satu map per pesan)
 Untuk **setiap** area (termasuk perbaikan hub, Sungai, dan Pasar), serahkan satu lembar desain berisi:
 
-1. **Denah atas** pulau ±48 × 40 m (koordinat meter, titik 0,0 di tengah, utara = −Z):
+1. **Denah atas** sesuai ukuran area di tabel "Ukuran area" (koordinat meter, titik 0,0 di tengah, utara = −Z), dibagi menjadi **2–3 zona** yang diberi nama:
    - titik masuk/keluar (dermaga atau jembatan dari hub);
    - jalur utama;
    - landmark yang terlihat dari jauh;
@@ -120,7 +120,20 @@ Setelah lembar desain disetujui, buat asetnya dengan urutan ini. Setiap batch se
 - **Batch 16 — Sampah tambahan** (tiap item punya segitiga kode di label, seperti Batch 2): `cableBundle` (PVC), `pipeElbow` (PVC), `sachet` (7 Other, multilapis), `toothpasteTube` (7), `foamCup` (6), `foamTray` (6), `yogurtCup` (5 PP), `bottleCap` (5 PP), `detergentBottle` (2 HDPE), `milkJug` (2 HDPE), `snackWrap` (7), `straw` (5 PP).
 
 ### Aturan tambahan untuk map
-- Tiap area berukuran ±48 × 40 m dan **dibatasi lereng lembah** (Batch 14), bukan laut. Pintu keluar berupa **gapura** di tepi area yang mengarah ke area tetangga sesuai peta dunia.
+- **Ukuran area** (kecepatan pemain: jalan 4,2 m/dtk, lari 6,8 m/dtk):
+
+  | Area | Ukuran | Waktu menyeberang (jalan / lari) |
+  |---|---|---|
+  | Area misi (Sungai, Pasar, Kebun, Sekolah, Warung, Bengkel, Bank Sampah) | **±70 × 55 m** | ±17 / 10 dtk |
+  | Hub Desa Lestari & Festival | **±80 × 60 m** | ±19 / 12 dtk |
+  | Pantai & Muara | **±110 × 70 m** daratan + perairan untuk perahu | ±26 / 16 dtk |
+
+- **Buat area terasa lebih luas dari ukurannya, bukan sekadar lebih besar:**
+  - bagi tiap area menjadi **2–3 zona** yang dipisah bukit kecil, pagar, atau deretan pohon (contoh Kebun: gudang alat, bedengan, sudut kompos), supaya zona berikutnya ditemukan sambil berjalan;
+  - dari titik masuk, pemain **tidak boleh** bisa melihat seluruh area sekaligus;
+  - jarak antar tujuan misi maksimal ±25 m (±6 dtk berjalan), supaya anak tidak bosan atau tersesat;
+  - kepadatan: 8–12 sampah per area misi (Pantai 15–20), tersebar di semua zona.
+- Tiap area **dibatasi lereng lembah** (Batch 14), bukan laut. Pintu keluar berupa **gapura** di tepi area yang mengarah ke area tetangga sesuai peta dunia.
 - **Laut hanya ada di Pantai & Muara** (selatan). Area lain boleh melihat sungai, tapi tidak melihat laut.
 - Jalur utama lebar ≥ 3 m (supaya joystick di HP nyaman). Benda yang bisa dipungut jangan diletakkan di balik objek tinggi.
 - Satu landmark tinggi (≥ 6 m) per area supaya pemain tidak tersesat.
