@@ -582,6 +582,13 @@ class Game {
     }
     this.cing.setAlert(!this.progress.flag('talked_cing') || this.dialogQueue.length > 0);
     this.cing.update(dt, this.time, this.player);
+    // Naik ke lantai jembatan (halus), turun lagi di tanah.
+    if (area) {
+      for (const who of [this.player, this.cing]) {
+        const y = area.groundHeight(who.position.x, who.position.z);
+        who.position.y += (y - who.position.y) * Math.min(1, dt * 14);
+      }
+    }
     this.effects.update(dt);
     this.trail.update(dt, this.player, this.fsm.is('explore') && this.player.runK > 0.5, this.camera);
     this.sky.update(dt);

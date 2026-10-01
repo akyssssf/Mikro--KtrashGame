@@ -212,6 +212,14 @@ export class Area {
     return list;
   }
 
+  // Tinggi permukaan berjalan: 0 di tanah, lantai jembatan saat di zona jembatan.
+  groundHeight(x, z) {
+    if (!this.collision.onBridge(x, z)) return 0;
+    groundRay.set(new THREE.Vector3(x, 3, z), DOWN);
+    const hit = groundRay.intersectObject(this.props, true).find((h) => h.point.y < 1.1);
+    return hit ? hit.point.y : 0;
+  }
+
   // ---------- siklus hidup ----------
   onEnter() {}
   onExit() {}
@@ -234,6 +242,8 @@ export class Area {
   }
 }
 
+const groundRay = new THREE.Raycaster();
+const DOWN = new THREE.Vector3(0, -1, 0);
 const moundMat = toon({ color: 0x6b5a45, roughness: 1, flatShading: true });
 const stainMat = new THREE.MeshBasicMaterial({ color: 0x3a3428, transparent: true, opacity: 0.35, depthWrite: false });
 
