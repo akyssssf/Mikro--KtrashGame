@@ -22,6 +22,8 @@ export class CameraRig {
     this.focus = new THREE.Vector3();
     this.goalFocus = new THREE.Vector3();
     this.override = null;
+    // Dongak kamera (radian, + = ke atas) di atas pose biasa; dipakai layar judul yang menghadap langit.
+    this.tilt = 0;
     this.smoothing = 6;
     this.idle = IDLE_BEFORE_RECENTER;
     this.heading = 0;
@@ -103,6 +105,7 @@ export class CameraRig {
     // Jangan menembus tanah.
     this.camera.position.y = Math.max(0.6, this.camera.position.y);
     this.camera.lookAt(focus.x, focus.y + (this.override ? 0 : 0.4), focus.z);
+    if (this.tilt) this.camera.rotateX(this.tilt);
   }
 
   update(dt) {

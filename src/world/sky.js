@@ -40,13 +40,15 @@ export function createSky(scene) {
   cloneAsset('cloud')?.traverse((o) => { if (o.isMesh && !cloudMesh) cloudMesh = o; });
   const cloudGeo = cloudMesh ? cloudMesh.geometry.clone().scale(0.6, 0.6, 0.6) : mergeGeometries(puffs);
   const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, vertexColors: !!cloudGeo.attributes.color });
-  const clouds = new THREE.InstancedMesh(cloudGeo, cloudMat, 12);
+  const clouds = new THREE.InstancedMesh(cloudGeo, cloudMat, 20);
   const cloudData = [];
   const m = new THREE.Matrix4();
   for (let i = 0; i < clouds.count; i++) {
     const a = rand() * Math.PI * 2;
     const r = 45 + rand() * 45;
-    cloudData.push({ a, r, y: 10 + rand() * 18, s: 1.2 + rand() * 1.6, v: 0.004 + rand() * 0.006 });
+    // 8 awan terakhir tinggi di langit: terlihat saat layar judul menghadap ke atas.
+    if (i >= 12) cloudData.push({ a, r: 70 + rand() * 40, y: 55 + rand() * 30, s: 3 + rand() * 2.5, v: 0.003 + rand() * 0.004 });
+    else cloudData.push({ a, r, y: 10 + rand() * 18, s: 1.2 + rand() * 1.6, v: 0.004 + rand() * 0.006 });
   }
   const pos = new THREE.Vector3();
   const quat = new THREE.Quaternion();

@@ -7,6 +7,9 @@ export const TEXT = {
     logoAlt: 'Mikro! — petualangan Cing si cacing tanah',
     tagline: 'Jelajahi Desa Lestari, kenali 7 jenis plastik, dan lihat nasib tanah di masa depan.',
     loading: 'Menyiapkan Desa Lestari…',
+    tapToStart: 'Ketuk di mana saja untuk lanjut',
+    unsAlt: 'Universitas Sebelas Maret',
+    studioAlt: '21 Creative',
   },
 
   menu: {

@@ -32,6 +32,11 @@ import { anyMicro, captionFor, microLabel, rowsFor, villageAt } from './systems/
 import { simulate, sliderFromYears } from './systems/timeSim.js';
 import { areaDamage } from './systems/soilHealth.js';
 import { basketPanel, menuPanel, Overlay, pausePanel, recyclePanel } from './ui/panels.js';
+import { playSplash, TitleScreen } from './ui/titleScreen.js';
+
+// Layar judul: kamera mendongak ke langit, lalu turun ke pose menu setelah diketuk.
+const TITLE_TILT = 1.25;
+const TITLE_DESCEND = 2.6;
 import { h } from './ui/dom.js';
 import { t, TEXT } from './data/dialogs.id.js';
 
@@ -83,6 +88,7 @@ class Game {
       end: new EndScreen(this),
       overlay: new Overlay('panel'),
       menu: new Overlay('menu-wrap'),
+      title: new TitleScreen(),
     };
     this.ui.prompt = this.ui.hud.prompt;
     this.ui.fade = (on) => this.ui.hud.fade(on);
@@ -126,6 +132,34 @@ class Game {
   #states() {
     return {
       loading: {},
+      title: {
+        enter: () => {
+          this.audio.playMusic('main_theme');
+          this.ui.hud.setVisible(false);
+          this.player.group.visible = false;
+          this.cing.group.visible = false;
+          this.rig.tilt = TITLE_TILT;
+          this.descend = null;
+          this.ui.title.show(() => {
+            this.audio.unlock();
+            this.descend = { t: 0, dur: this.reducedMotion ? 0.6 : TITLE_DESCEND };
+          }, this.reducedMotion);
+        },
+        update: (dt) => {
+          this.rig.setOverride({ ...this.#menuPose(), smoothing: 50 });
+          const d = this.descend;
+          if (!d) return;
+          d.t += dt;
+          const k = Math.min(1, d.t / d.dur);
+          // Ease in-out: mulai pelan, turun, lalu mendarat halus di pose menu.
+          const e = k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2;
+          this.rig.tilt = TITLE_TILT * (1 - e);
+          if (k >= 1) {
+            this.rig.tilt = 0;
+            this.fsm.set('menu');
+          }
+        },
+      },
       menu: {
         enter: () => {
           this.audio.playMusic('main_theme');
@@ -142,10 +176,7 @@ class Game {
         exit: (next) => { if (next !== 'codex') this.ui.menu.hide(); },
         update: () => {
           // Fokus digeser ke kiri layar supaya pulau tampil di sebelah kanan panel menu.
-          const yaw = this.time * 0.04;
-          const shift = window.innerWidth > 900 ? 14 : 0;
-          const focus = new THREE.Vector3(-Math.cos(yaw) * shift, 0, Math.sin(yaw) * shift);
-          this.rig.setOverride({ focus, distance: 58, pitch: 0.5, yaw, smoothing: 2 });
+          this.rig.setOverride(this.#menuPose());
         },
       },
       explore: {
@@ -278,6 +309,14 @@ class Game {
     }));
   }
 
+  // Fokus digeser ke kiri layar supaya pulau tampil di sebelah kanan panel menu.
+  #menuPose() {
+    const yaw = this.time * 0.04;
+    const shift = window.innerWidth > 900 ? 14 : 0;
+    const focus = new THREE.Vector3(-Math.cos(yaw) * shift, 0, Math.sin(yaw) * shift);
+    return { focus, distance: 58, pitch: 0.5, yaw, smoothing: 2 };
+  }
+
   // ---------------- alur ----------------
   // Dipanggil setelah font dan aset 3D siap.
   boot(loading) {
@@ -291,7 +330,7 @@ class Game {
     this.last = performance.now();
     this.time = 0;
     requestAnimationFrame((n) => this.#frame(n));
-    this.fsm.set('menu');
+    this.fsm.set('title');
   }
 
   #startGame(fresh) {
@@ -645,15 +684,15 @@ async function start() {
   const label = h('p', {}, t('game.loading'));
   const loading = h('div', { id: 'loading' },
     h('div', { class: 'loading-card' },
-      h('img', { class: 'loading-logo', src: `${import.meta.env.BASE_URL}logo.png`, alt: t('game.logoAlt'), width: 760, height: 524 }),
       h('div', { class: 'bar', role: 'progressbar', 'aria-label': t('game.loading') }, bar),
       label,
     ));
   document.body.append(loading);
-  try {
-    await Promise.race([document.fonts.load('800 58px "Baloo 2"'), new Promise((r) => setTimeout(r, 2000))]);
-  } catch { /* font opsional */ }
-  await loadAssets((k) => { bar.style.width = `${Math.round(k * 100)}%`; });
+  // Aset dimuat di belakang layar selama logo UNS & studio tampil.
+  const fonts = Promise.race([document.fonts.load('800 58px "Baloo 2"'), new Promise((r) => setTimeout(r, 2000))]).catch(() => {});
+  const assets = loadAssets((k) => { bar.style.width = `${Math.round(k * 100)}%`; });
+  await playSplash();
+  await Promise.all([fonts, assets]);
   const game = new Game();
   // Tunggu musik selesai didekode, supaya klik pertama di menu langsung memutar lagu.
   await game.audio.preloading;

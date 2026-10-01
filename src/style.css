@@ -389,3 +389,23 @@ h3.sec { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; colo
 .stat b { color: var(--ink); }
 .lesson { font-weight: 800; background: var(--orange-pale); border: 2px solid var(--ink); border-radius: 12px; padding: 8px 12px; }
 #ending .panel { width: min(660px, 94vw); }
+
+/* ---------- pembuka: logo UNS & studio, layar judul ---------- */
+#splash { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: #fff; transition: background-color .45s, opacity .45s; }
+#splash.dark { background: #0b0c10; }
+#splash.out { opacity: 0; }
+#splash img { width: min(560px, 76vw); height: auto; opacity: 0; transform: scale(.96); transition: opacity .5s ease, transform 2.6s cubic-bezier(.2, .7, .2, 1); }
+#splash img.studio { width: min(420px, 64vw); filter: drop-shadow(0 0 28px rgba(140, 170, 255, .35)); }
+#splash img.on { opacity: 1; transform: scale(1); }
+#title { position: fixed; inset: 0; z-index: 12; display: grid; place-items: center; cursor: pointer; outline: none; transition: opacity .6s ease; }
+#title.out { opacity: 0; pointer-events: none; }
+#title video { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); width: min(100vw, 170vh); height: auto; pointer-events: none; }
+#title .fallback { width: min(620px, 84vw); height: auto; margin-top: -4vh; animation: pop .7s cubic-bezier(.3, 1.6, .5, 1) both; }
+#title .tap { position: absolute; left: 0; right: 0; bottom: max(7vh, 32px); margin: 0; text-align: center; font-size: clamp(18px, 2.4vw, 26px); font-weight: 800; color: #fff;
+  -webkit-text-stroke: 7px var(--ink); paint-order: stroke fill; opacity: 0; transition: opacity .5s; }
+#title .tap.on { opacity: 1; animation: tapPulse 1.6s ease-in-out .5s infinite; }
+@keyframes tapPulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { #title .tap.on { animation: none; } #splash img { transition: opacity .3s; transform: none; } }
+#title { overflow: hidden; }
+/* Layar tegak (HP): video diperlebar agar logo tetap besar; sisi kirinya kosong jadi aman terpotong. */
+@media (max-aspect-ratio: 1/1) { #title video { width: 185vw; max-width: none; } }
