@@ -46,9 +46,9 @@ export function menuPanel({ hasSave, onContinue, onNew, onCodex }) {
   const controls = h('div', { class: 'controls', 'aria-label': t('menu.controlsTitle') },
     TEXT.menu.controls.flatMap(([k, v]) => [h('span', { class: 'keys' }, k.split(' / ').map((x) => h('kbd', {}, x))), h('span', {}, v)]));
   return h('section', { id: 'menu', class: 'card', role: 'dialog', 'aria-labelledby': 'menu-title' },
-    h('div', { class: 'brand' },
-      h('div', { class: 'brand-cing', html: cingSvg('ceria') }),
-      h('h1', { id: 'menu-title' }, h('span', { class: 'a' }, t('game.titleA')), h('span', { class: 'b' }, t('game.titleB'))),
+    h('h1', { id: 'menu-title', class: 'brand' },
+      h('img', { class: 'logo', src: `${import.meta.env.BASE_URL}logo.png`, alt: t('game.logoAlt'), width: 760, height: 524 }),
+      h('span', { class: 'sr-only' }, t('game.title')),
     ),
     h('p', { class: 'tagline' }, t('game.tagline')),
     stack, confirmBox,

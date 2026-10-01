@@ -32,7 +32,7 @@ import { anyMicro, captionFor, microLabel, rowsFor, villageAt } from './systems/
 import { simulate, sliderFromYears } from './systems/timeSim.js';
 import { areaDamage } from './systems/soilHealth.js';
 import { basketPanel, menuPanel, Overlay, pausePanel, recyclePanel } from './ui/panels.js';
-import { cingSvg, h } from './ui/dom.js';
+import { h } from './ui/dom.js';
 import { t, TEXT } from './data/dialogs.id.js';
 
 class Game {
@@ -645,8 +645,7 @@ async function start() {
   const label = h('p', {}, t('game.loading'));
   const loading = h('div', { id: 'loading' },
     h('div', { class: 'loading-card' },
-      h('div', { class: 'loading-cing', html: cingSvg('ceria') }),
-      h('h1', {}, h('span', { class: 'a' }, t('game.titleA')), ' ', h('span', { class: 'b' }, t('game.titleB'))),
+      h('img', { class: 'loading-logo', src: `${import.meta.env.BASE_URL}logo.png`, alt: t('game.logoAlt'), width: 760, height: 524 }),
       h('div', { class: 'bar', role: 'progressbar', 'aria-label': t('game.loading') }, bar),
       label,
     ));

@@ -3,8 +3,8 @@
 
 export const TEXT = {
   game: {
-    titleA: 'Penjaga',
-    titleB: 'Tanah',
+    title: 'Mikro!',
+    logoAlt: 'Mikro! — petualangan Cing si cacing tanah',
     tagline: 'Jelajahi Desa Lestari, kenali 7 jenis plastik, dan lihat nasib tanah di masa depan.',
     loading: 'Menyiapkan Desa Lestari…',
   },
