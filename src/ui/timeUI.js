@@ -3,7 +3,8 @@
 import { t } from '../data/dialogs.id.js';
 import { sliderFromYears, yearParts, yearsFromSlider } from '../systems/timeSim.js';
 import { whenText } from '../systems/projection.js';
-import { button, h, uiRoot } from './dom.js';
+import { button, h, uiRoot, UI_ICONS } from './dom.js';
+import { shell } from './panels.js';
 
 const STEPS = 1000;
 
@@ -12,18 +13,27 @@ const healthColor = (v) => (v >= 70 ? '#2fb35a' : v >= 40 ? '#f5b82e' : '#c0343a
 export class TimeUI {
   constructor(game) {
     this.game = game;
-    this.caption = h('section', { id: 'time-cap', class: 'card hidden', 'aria-live': 'polite' });
-    this.panel = h('section', { id: 'time-panel', class: 'card hidden' });
+    // Kartu caption & panel isi tanah memakai kerangka panel yang sama dengan UI lain.
+    this.captionBody = h('div', { class: 'cap-text', 'aria-live': 'polite' });
+    this.caption = shell({ id: 'timecap', title: t('time.gateTitle'), icon: 'clock', accent: 'sky', children: [this.captionBody] });
+    this.caption.id = 'time-cap';
+    this.caption.classList.add('hidden');
+    this.panelBody = h('div');
+    this.panel = shell({ id: 'timepanel', title: t('time.whatsInSoil'), icon: 'recycle', accent: 'green', children: [this.panelBody] });
+    this.panel.id = 'time-panel';
+    this.panel.classList.add('hidden');
     this.yearEl = h('div', { class: 'year', 'aria-live': 'off' });
     this.slider = h('input', { type: 'range', min: 0, max: STEPS, value: 0, 'aria-label': t('time.slider') });
     this.jumps = h('div', { class: 'jumps' });
     this.noteEl = h('div', { class: 'note' });
-    this.playBtn = button(t('time.play'), () => this.togglePlay());
+    this.playBtn = button(t('time.play'), () => this.togglePlay(), 'big');
+    this.playIcon = h('span', { class: 'play-ico', html: UI_ICONS.play });
+    this.playBtn.prepend(this.playIcon);
     this.closeBtn = button(t('time.back'), () => this.finish(), 'ghost', 'Esc');
     this.bar = h('section', { id: 'time-bar', class: 'card hidden' },
       this.yearEl,
       h('div', { class: 'mid' }, this.slider, this.jumps, this.noteEl),
-      h('div', { class: 'row', style: 'flex-direction:column;align-items:stretch;gap:6px' }, this.playBtn, this.closeBtn),
+      h('div', { class: 'side' }, this.playBtn, this.closeBtn),
     );
     this.inset = h('div', { id: 'soil-inset', class: 'hidden' }, h('span', {}, t('time.inset')));
     uiRoot().append(this.caption, this.panel, this.bar, this.inset);
@@ -49,6 +59,7 @@ export class TimeUI {
     this.bar.classList.remove('hidden');
     this.inset.classList.toggle('hidden', !opts.inset);
     this.closeBtn.firstChild.textContent = opts.closeLabel ?? t('time.back');
+    this.caption.querySelector('h2').textContent = opts.title;
     this.jumps.innerHTML = '';
     for (const y of opts.jumps) {
       const label = y < 1 ? t('time.jumpMonth', { n: Math.round(y * 12) }) : t('time.jump', { n: y });
@@ -56,7 +67,7 @@ export class TimeUI {
         this.playing = false;
         this.#syncPlay();
         this.setSlider(sliderFromYears(y, opts.maxYears));
-      }, 'small ghost'));
+      }, 'small ghost jump'));
     }
     this.playing = false;
     this.#syncPlay();
@@ -85,6 +96,7 @@ export class TimeUI {
   setSlider(s) {
     this.s = Math.max(0, Math.min(1, s));
     this.slider.value = String(Math.round(this.s * STEPS));
+    this.slider.style.setProperty('--p', `${this.s * 100}%`);
     const years = this.years;
     this.maxReached = Math.max(this.maxReached, years);
     this.#render(years);
@@ -97,7 +109,10 @@ export class TimeUI {
     this.#syncPlay();
   }
 
-  #syncPlay() { this.playBtn.firstChild.textContent = this.playing ? t('time.pause') : t('time.play'); }
+  #syncPlay() {
+    this.playBtn.lastChild.textContent = this.playing ? t('time.pause') : t('time.play');
+    this.playIcon.innerHTML = this.playing ? UI_ICONS.pause : UI_ICONS.play;
+  }
 
   #render(years) {
     const o = this.opts;
@@ -105,15 +120,13 @@ export class TimeUI {
     const y = yearParts(years);
     this.yearEl.innerHTML = '';
     this.yearEl.append(whenText(years), h('small', {}, y.unit === 'sekarang' ? o.title : t('time.fromNow')));
-    this.caption.innerHTML = '';
-    this.caption.append(h('div', { class: 't-title' }, o.title), h('div', { html: r.caption }));
+    this.captionBody.innerHTML = r.caption;
     const hv = Math.round(r.health);
-    this.panel.innerHTML = '';
-    this.panel.append(
-      h('h3', {}, t('time.whatsInSoil')),
-      h('div', { class: 'kv' }, h('span', {}, t('time.soilHealth')), h('span', {}, `${hv}%`)),
+    this.panelBody.innerHTML = '';
+    this.panelBody.append(
+      h('div', { class: 'kv' }, h('span', {}, t('time.soilHealth')), h('b', {}, `${hv}%`)),
       h('div', { class: 'bar' }, h('i', { style: `width:${hv}%;background-color:${healthColor(hv)}` })),
-      h('div', { class: 'kv' }, h('span', {}, t('time.micro')), h('span', {}, r.micro)),
+      h('div', { class: 'kv' }, h('span', {}, t('time.micro')), h('b', {}, r.micro)),
       h('div', { class: 'rows' }, r.rows.map((row) => h('div', { class: 'r' },
         h('span', { class: 'dot', style: `background:${row.color}` }, row.badge),
         h('span', { class: 'nm' }, row.name, h('br'), h('span', { class: 'note' }, row.decay)),

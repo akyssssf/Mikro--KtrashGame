@@ -438,6 +438,7 @@ export const TEXT = {
 
   sort: {
     title: 'Pilah Sampah',
+    howTitle: 'Cara main',
     help: 'Seret sampah ke tempat yang kodenya cocok, atau tekan angka 1–8.',
     hintAlways: 'Petunjuk: kode selalu tampil.',
     hintHover: 'Petunjuk: arahkan kursor untuk melihat kode.',

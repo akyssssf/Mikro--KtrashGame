@@ -596,7 +596,8 @@ class Game {
     if (this.fsm.is('minigame')) this.renderer.render(this.ui.sort.scene, this.ui.sort.camera);
     else this.renderer.render(this.scene, this.camera);
     if (this.fsm.is('timeGate') && this.ui.time.opts?.inset && this.section) {
-      this.section.render(this.renderer, this.ui.time.inset.getBoundingClientRect(), this.time);
+      const rect = this.ui.time.inset.getBoundingClientRect();
+      if (rect.width > 10) this.section.render(this.renderer, rect, this.time);
     }
     this.#fpsTick(dt);
     inp.endFrame();

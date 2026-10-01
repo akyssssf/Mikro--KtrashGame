@@ -109,7 +109,10 @@ export class SortGame {
   }
 
   #buildUi() {
-    this.hud = h('section', { id: 'sort-hud', class: 'card hidden' });
+    this.hudBody = h('div');
+    this.hud = shell({ id: 'sorthud', title: t('sort.title'), icon: 'recycle', accent: 'green', children: [this.hudBody] });
+    this.hud.id = 'sort-hud';
+    this.hud.classList.add('hidden');
     this.help = h('section', { id: 'sort-help', class: 'card hidden' });
     this.tags = h('div', { id: 'sort-tags', class: 'hidden passthrough' });
     this.keys = h('div', { class: 'bin-keys hidden', role: 'group', 'aria-label': t('sort.title') });
@@ -137,7 +140,8 @@ export class SortGame {
     Object.assign(this, { time: 0, nextSpawn: 0.6, ok: 0, bad: 0, combo: 0, drag: null, hover: null, done: false });
     for (const el of [this.hud, this.help, this.tags, this.keys]) el.classList.remove('hidden');
     this.help.innerHTML = '';
-    this.help.append(t('sort.help'), h('br'), h('span', { class: 'note' }, t(`sort.hint${this.hint[0].toUpperCase()}${this.hint.slice(1)}`)));
+    this.help.append(h('span', { class: 'chip' }, t('sort.howTitle')), h('p', {}, t('sort.help')),
+      h('span', { class: 'note' }, t(`sort.hint${this.hint[0].toUpperCase()}${this.hint.slice(1)}`)));
     this.#hud();
     this.resize();
   }
@@ -252,13 +256,11 @@ export class SortGame {
 
   #hud() {
     const left = this.queue.length + this.items.filter((i) => i.state === 'belt' || i.state === 'drag').length;
-    this.hud.innerHTML = '';
-    this.hud.append(
-      h('h3', {}, t('sort.title')),
-      h('div', { class: 'kv' }, h('span', {}, t('sort.correct')), h('b', {}, this.ok)),
-      h('div', { class: 'kv' }, h('span', {}, t('sort.wrong')), h('b', {}, this.bad)),
-      h('div', { class: 'kv' }, h('span', {}, t('sort.left')), h('b', {}, left)),
-      h('div', { style: 'margin-top:8px' }, this.quitBtn),
+    const tile = (cls, label, value) => h('div', { class: `tile ${cls}` }, h('b', {}, value), h('span', {}, label));
+    this.hudBody.innerHTML = '';
+    this.hudBody.append(
+      h('div', { class: 'tiles' }, tile('ok', t('sort.correct'), this.ok), tile('bad', t('sort.wrong'), this.bad), tile('left', t('sort.left'), left)),
+      h('div', { style: 'margin-top:10px' }, this.quitBtn),
     );
   }
 
