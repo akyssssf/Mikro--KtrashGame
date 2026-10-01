@@ -279,7 +279,7 @@ export class SortGame {
       if (it) {
         this.drag = it;
         it.state = 'drag';
-        this.game.audio.pick();
+        this.game.audio.pick(it.e.type);
       }
     });
     cv.addEventListener('pointermove', (e) => {

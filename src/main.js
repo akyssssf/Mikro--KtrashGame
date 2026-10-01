@@ -124,6 +124,7 @@ class Game {
       loading: {},
       menu: {
         enter: () => {
+          this.audio.playMusic('main_theme');
           this.ui.hud.setVisible(false);
           this.player.group.visible = false;
           this.cing.group.visible = false;
@@ -145,6 +146,7 @@ class Game {
       },
       explore: {
         enter: () => {
+          this.audio.playMusic('desa_ceria');
           this.ui.hud.setVisible(true);
           this.rig.clearOverride();
           this.player.group.visible = true;
@@ -193,6 +195,7 @@ class Game {
       timeGate: {
         enter: (prev, { opts, pose, onExit }) => {
           this.ui.hud.setVisible(false);
+          this.audio.playMusic('desa_ceria', { rate: 0.88 });
           this.timeExit = onExit;
           this.rig.setOverride({ smoothing: 2.5, ...pose });
           this.ui.time.start(opts);
@@ -212,6 +215,7 @@ class Game {
       minigame: {
         enter: (prev, { items }) => {
           this.ui.hud.setVisible(false);
+          this.audio.playMusic('main_theme', { rate: 1.06 });
           this.ui.sort.start(items, this.progress.data.sortSessions);
         },
         exit: () => this.ui.sort.stop(),
@@ -219,6 +223,7 @@ class Game {
       },
       ending: {
         enter: (prev, { health }) => {
+          this.audio.playMusic('main_theme');
           const hub = this.areas.current;
           hub.overrideHealth = health;
           this.ui.hud.setVisible(false);
@@ -453,7 +458,7 @@ class Game {
   #finishSlice() {
     const v = villageAt(this.soil, 100);
     this.progress.setFlag('finalGate');
-    this.audio.card();
+    this.audio.questDone();
     this.fsm.set('ending', { health: v.health });
     this.areas.current.visuals.setMicro(v.micro / 8);
   }
@@ -528,7 +533,7 @@ class Game {
     if (e.kind === 'reset' || e.kind === 'load') return;
     const done = this.quests.check();
     if (done.length) {
-      this.audio.card();
+      this.audio.questDone();
       this.effects.confetti(this.player.position);
     }
     for (const id of done) {
@@ -578,6 +583,11 @@ class Game {
       this.villageDisplay = this.villageDisplay === null ? vTarget : vTarget + (this.villageDisplay - vTarget) * Math.exp(-1.6 * dt);
       this.ui.hud.setHealth(area.id, ah, this.villageDisplay);
       this.cing.setHealth(ah);
+      this.moodTimer = (this.moodTimer ?? 0) - dt;
+      if (this.moodTimer <= 0) {
+        this.moodTimer = 0.4;
+        this.audio.setMusicMood(area.overrideHealth ?? ah, this.fsm.is('timeGate'));
+      }
       this.cing.setMood(moodOf(ah));
     }
     this.cing.setAlert(!this.progress.flag('talked_cing') || this.dialogQueue.length > 0);

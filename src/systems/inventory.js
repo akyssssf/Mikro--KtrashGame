@@ -24,12 +24,12 @@ export class Inventory {
     const g = this.game;
     if (this.progress.basketFull) {
       g.toast(t('toast.basketFull'), 'info');
-      g.audio.bad();
+      g.audio.basketFull();
       return false;
     }
     const code = trash.type.kode;
     area.removeTrash(trash.gid);
-    g.audio.pick();
+    g.audio.pick(trash.type);
     g.player.swing();
     trash.flyTo(() => g.player.position.clone().setY(1.3), () => g.effects.sparkle(g.player.position, 0xffd166));
     this.progress.addToBasket(trash.gid, trash.typeId, area.id, typeof code === 'number' ? code : null);

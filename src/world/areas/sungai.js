@@ -204,6 +204,7 @@ export default class SungaiArea extends Area {
       },
       action: () => {
         if (!this.progress.hasTool('jaring')) { this.game.toast(t('toast.needNet'), 'info'); return; }
+        this.game.audio.netSwing();
         this.game.audio.splash();
         this.game.effects.burst(trash.position, 0x8fd0f2, 14, { up: 3 });
         this.game.pickTrash(trash, this);
