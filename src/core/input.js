@@ -66,14 +66,14 @@ export class InputManager extends Emitter {
     this.press = null;
     canvas.addEventListener('pointerdown', (e) => {
       if (e.button !== 0 && e.button !== 2) return;
-      this.press = { id: e.pointerId, x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, dragged: e.button === 2, button: e.button };
+      this.press = { id: e.pointerId, x: e.clientX, y: e.clientY, lastX: e.clientX, lastY: e.clientY, dragged: e.button === 2, button: e.button, type: e.pointerType };
       canvas.setPointerCapture(e.pointerId);
     });
     canvas.addEventListener('pointermove', (e) => {
       const p = this.press;
       if (!p || p.id !== e.pointerId) return;
       if (!p.dragged && Math.hypot(e.clientX - p.x, e.clientY - p.y) > DRAG_THRESHOLD) p.dragged = true;
-      if (p.dragged) this.emit('drag', { dx: e.clientX - p.lastX, dy: e.clientY - p.lastY });
+      if (p.dragged) this.emit('drag', { dx: e.clientX - p.lastX, dy: e.clientY - p.lastY, type: p.type });
       p.lastX = e.clientX;
       p.lastY = e.clientY;
     });

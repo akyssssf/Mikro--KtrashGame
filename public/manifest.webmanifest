@@ -1,0 +1,11 @@
+{
+  "name": "Mikro! – Petualangan Cing",
+  "short_name": "Mikro!",
+  "start_url": ".",
+  "scope": ".",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1a7f3d",
+  "theme_color": "#1a7f3d",
+  "icons": [{ "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }]
+}

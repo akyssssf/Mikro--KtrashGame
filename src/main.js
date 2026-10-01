@@ -34,6 +34,7 @@ import { areaDamage } from './systems/soilHealth.js';
 import { basketPanel, howToPanel, menuPanel, Overlay, pausePanel, recyclePanel } from './ui/panels.js';
 import { playOpening, playSplash, TitleScreen } from './ui/titleScreen.js';
 import { updateSeeThrough } from './world/seeThrough.js';
+import { addRotateHint, isTouchDevice, mobileGate, TouchControls } from './ui/touchControls.js';
 
 // Layar judul: kamera mendongak ke langit, lalu turun ke pose menu setelah diketuk.
 const TITLE_TILT = 1.25;
@@ -105,6 +106,11 @@ class Game {
     this.fsm = new StateMachine(this.#states());
 
     this.progress.on('change', (e) => this.#onProgress(e));
+    // Layar sentuh: seret di area kosong memutar kamera (di desktop pakai tombol panah).
+    this.input.on('drag', ({ dx, dy, type }) => {
+      if (type === 'touch' && this.fsm.is('explore', 'timeGate')) this.rig.drag(dx * 1.3, dy * 1.3);
+    });
+    this.touch = isTouchDevice() ? new TouchControls(this.input) : null;
     this.input.on('zoom', ({ delta }) => {
       if (this.fsm.is('explore')) this.rig.zoom(delta);
     });
@@ -639,6 +645,7 @@ class Game {
     this.last = now;
     this.time += dt;
     const inp = this.input;
+    this.touch?.setVisible(this.fsm.is('explore'));
     if (inp.consume('mute')) this.toggleMute();
     if (inp.consume('fps')) this.showFps = !this.showFps;
 
@@ -721,6 +728,10 @@ async function start() {
   // Aset dimuat di belakang layar selama logo UNS & studio tampil.
   const fonts = Promise.race([document.fonts.load('800 58px "Baloo 2"'), new Promise((r) => setTimeout(r, 2000))]).catch(() => {});
   const assets = loadAssets((k) => { bar.style.width = `${Math.round(k * 100)}%`; });
+  if (isTouchDevice()) {
+    addRotateHint();
+    await mobileGate();
+  }
   await playSplash();
   await Promise.all([fonts, assets]);
   const game = new Game();

@@ -486,3 +486,41 @@ h3.sec { font-size: 15px; text-transform: uppercase; letter-spacing: .05em; colo
 #opening video { width: 100%; height: 100%; object-fit: contain; }
 #opening .skip { position: absolute; right: 20px; bottom: 20px; gap: 10px; }
 #opening .skip .key { position: static; }
+
+/* ---------- HP / layar sentuh ---------- */
+#mobile-gate, #rotate-hint { position: fixed; inset: 0; z-index: 60; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 24px;
+  text-align: center; color: #fff; background: radial-gradient(circle at 50% 40%, #2fb35a, #1a7f3d 70%); }
+#mobile-gate h2 { font-size: 30px; -webkit-text-stroke: 7px var(--ink); paint-order: stroke fill; }
+#mobile-gate p, #rotate-hint p { margin: 0; max-width: 420px; font-size: 18px; font-weight: 700; line-height: 1.35; }
+#mobile-gate .hint { font-size: 14px; opacity: .9; }
+#mobile-gate.out { opacity: 0; transition: opacity .3s; }
+.phone { width: 54px; height: 92px; border: 5px solid #fff; border-radius: 12px; position: relative; animation: phoneTurn 2.2s ease-in-out infinite; }
+.phone i { position: absolute; left: 50%; bottom: 6px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: #fff; }
+@keyframes phoneTurn { 0%, 25% { transform: rotate(0); } 55%, 100% { transform: rotate(-90deg); } }
+#rotate-hint { display: none; z-index: 70; }
+@media (orientation: portrait) and (pointer: coarse) { #rotate-hint { display: grid; } }
+
+#touch { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+#touch.hidden { display: none; }
+#touch .stick { position: absolute; left: max(14px, env(safe-area-inset-left)); bottom: 14px; width: 170px; height: 170px; display: grid; place-items: center; pointer-events: auto; touch-action: none; }
+#touch .ring { width: 128px; height: 128px; border-radius: 50%; background: rgba(255, 248, 231, .35); border: 4px solid rgba(23, 50, 77, .55); display: grid; place-items: center; }
+#touch .knob { width: 58px; height: 58px; border-radius: 50%; background: var(--cream); border: 4px solid var(--ink); box-shadow: 0 4px 0 var(--ink); transition: transform .06s; }
+#touch .stick.on .ring { background: rgba(255, 248, 231, .55); }
+#touch .tbtns { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: 20px; display: flex; align-items: flex-end; gap: 14px; pointer-events: auto; }
+.tbtn { font: inherit; font-weight: 800; color: var(--ink); border: 4px solid var(--ink); border-radius: 50%; box-shadow: 0 5px 0 var(--ink); touch-action: none; user-select: none; -webkit-user-select: none; }
+.tbtn.act { width: 96px; height: 96px; font-size: 20px; background: var(--orange); }
+.tbtn.run { width: 70px; height: 70px; font-size: 16px; background: var(--cream); margin-bottom: 40px; }
+.tbtn.on { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+
+/* Layar pendek (HP mendatar): seluruh UI diperkecil; keranjang naik agar tidak tertutup joystick. */
+@media (max-height: 520px) {
+  #ui { zoom: .7; }
+  #touch { zoom: 1; }
+  #hud-quest { width: min(300px, 34vw); }
+}
+@media (max-height: 520px) and (pointer: coarse) {
+  /* Bar keranjang ringkas (jumlah + alat) di antara joystick dan tombol Aksi. */
+  #hud-bottom .slots, #hud-bottom .sep { display: none; }
+  #prompt { bottom: 130px; }
+}
+@media (pointer: coarse) { .icon-btn .key, .btn .key, #prompt kbd { display: none; } }

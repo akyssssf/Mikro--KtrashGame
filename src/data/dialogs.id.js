@@ -14,6 +14,18 @@ export const TEXT = {
     studioAlt: '21 Creative',
   },
 
+  mobile: {
+    title: 'Siap bermain?',
+    rotate: 'Putar HP-mu ke posisi horizontal (mendatar) supaya desanya terlihat luas.',
+    playFull: 'Main layar penuh',
+    play: 'Mulai main',
+    iosHint: 'Di iPhone: ketuk Bagikan → "Tambah ke Layar Utama" untuk layar penuh.',
+    portrait: 'Putar HP ke horizontal untuk lanjut bermain',
+    act: 'Aksi',
+    run: 'Lari',
+    stick: 'Joystick jalan',
+  },
+
   menu: {
     continue: 'Lanjutkan',
     newGame: 'Main baru',
