@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { rng } from './builders.js';
+import { cloneAsset } from '../core/assets.js';
 
 export function createSky(scene) {
   const skyGeo = new THREE.SphereGeometry(300, 24, 12);
@@ -34,8 +35,12 @@ export function createSky(scene) {
     s.translate(k * 1.3 - 2.6, rand() * 0.4, rand() * 0.6 - 0.3);
     puffs.push(s);
   }
-  const cloudGeo = mergeGeometries(puffs);
-  const clouds = new THREE.InstancedMesh(cloudGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false }), 12);
+  // Bentuk awan dari aset bila ada (warna vertex), kalau tidak dari gabungan bola.
+  let cloudMesh = null;
+  cloneAsset('cloud')?.traverse((o) => { if (o.isMesh && !cloudMesh) cloudMesh = o; });
+  const cloudGeo = cloudMesh ? cloudMesh.geometry.clone().scale(0.6, 0.6, 0.6) : mergeGeometries(puffs);
+  const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false, vertexColors: !!cloudGeo.attributes.color });
+  const clouds = new THREE.InstancedMesh(cloudGeo, cloudMat, 12);
   const cloudData = [];
   const m = new THREE.Matrix4();
   for (let i = 0; i < clouds.count; i++) {

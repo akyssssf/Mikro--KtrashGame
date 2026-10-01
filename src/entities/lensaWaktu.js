@@ -1,6 +1,7 @@
 // Lensa Waktu: batu soket + lensa melayang + pusaran di sekitar area kecil yang dimajukan waktunya.
 import * as THREE from 'three';
 import { canvasTexture, toon } from '../world/builders.js';
+import { cloneAsset } from '../core/assets.js';
 
 export class LensaWaktu {
   constructor({ socket, center, radius }) {
@@ -20,7 +21,12 @@ export class LensaWaktu {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.06, 6, 20), this.ringMat);
     ring.rotation.x = Math.PI / 2;
     ring.position.y = 0.72;
-    pedestal.add(stone, ring);
+    const stoneAsset = cloneAsset('lensPedestal');
+    if (stoneAsset) {
+      stoneAsset.scale.setScalar(0.8);
+      ring.position.y = 1.14;
+    }
+    pedestal.add(stoneAsset ?? stone, ring);
     this.group.add(pedestal);
     this.pedestal = pedestal;
     this.socket = new THREE.Vector3(socket.x, 0, socket.z);
@@ -29,8 +35,15 @@ export class LensaWaktu {
     this.lens = new THREE.Group();
     const frame = new THREE.Mesh(new THREE.TorusGeometry(0.7, 0.09, 8, 28), toon({ color: 0xc9a227, metalness: 0.4, roughness: 0.35 }));
     const glass = new THREE.Mesh(new THREE.CircleGeometry(0.66, 28), new THREE.MeshBasicMaterial({ color: 0xbfe9ff, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false }));
-    this.lens.add(frame, glass);
-    this.lens.rotation.x = -Math.PI / 2.4;
+    // Aset timeLens berdiri tegak (kaca pembesar bergagang); versi prosedural dimiringkan.
+    this.lensAsset = cloneAsset('timeLens');
+    if (this.lensAsset) {
+      this.lensAsset.position.set(-0.15, -0.9, 0);
+      this.lens.add(this.lensAsset);
+    } else {
+      this.lens.add(frame, glass);
+      this.lens.rotation.x = -Math.PI / 2.4;
+    }
     this.lens.position.set(center.x, 2.8, center.z);
     this.lens.visible = false;
     this.group.add(this.lens);
@@ -72,7 +85,8 @@ export class LensaWaktu {
     this.lens.visible = a > 0.02;
     this.lens.scale.setScalar(0.4 + 0.6 * a);
     this.lens.position.y = 2.8 + Math.sin(time * 2) * 0.1 * (reducedMotion ? 0 : 1);
-    this.lens.rotation.z = time * 0.5;
+    if (this.lensAsset) this.lens.rotation.y = time * 0.8;
+    else this.lens.rotation.z = time * 0.5;
     this.swirlMat.opacity = 0.75 * a;
     this.swirl.rotation.z = -time * (reducedMotion ? 0.3 : 1.6);
     this.wallMat.opacity = 0.14 * a;

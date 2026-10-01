@@ -1,8 +1,20 @@
 // Properti low-poly untuk dunia (rumah, pohon, lapak, jembatan, dsb.).
 import * as THREE from 'three';
 import { box, canvasTexture, cone, cyl, group, ico, mat, mesh, place, toon } from './builders.js';
+import { cloneAsset } from '../core/assets.js';
+
+// Aset GLB (folder /assets) dipakai bila ada; kalau tidak, bentuk prosedural di bawah.
+export function asset(key, scale = 1) {
+  const obj = cloneAsset(key);
+  if (!obj) return null;
+  obj.scale.multiplyScalar(scale);
+  obj.userData.asset = key;
+  return obj;
+}
 
 export function tree(scale = 1, variant = 0) {
+  const a = asset(variant % 2 ? 'tree_pine' : 'tree_round', scale);
+  if (a) { a.userData.batch = 'foliage'; return a; }
   const g = new THREE.Group();
   g.add(cyl(0.18, 0.26, 1.6, 0x7a5230, 0, 0.8, 0, 7));
   const foliage = new THREE.Group();
@@ -18,6 +30,8 @@ export function tree(scale = 1, variant = 0) {
 }
 
 export function bush(scale = 1) {
+  const a = asset('bush', scale);
+  if (a) { a.userData.batch = 'foliage'; return a; }
   const g = new THREE.Group();
   g.userData.batch = 'foliage';
   g.add(ico(0.55, 0x5aa648, 0, 0.35, 0), ico(0.4, 0x5aa648, 0.45, 0.3, 0.1), ico(0.38, 0x5aa648, -0.4, 0.28, -0.1));
@@ -25,13 +39,20 @@ export function bush(scale = 1) {
   return g;
 }
 
+let rockVariant = 0;
 export function rock(scale = 1, color = 0x9aa0a6) {
+  const a = asset(`rock_${(rockVariant++ % 3) + 1}`, scale);
+  if (a) return a;
   const m = ico(0.6, color, 0, 0.3, 0, 0);
   m.scale.set(scale * 1.2, scale * 0.8, scale);
   return m;
 }
 
+const HOUSE_VARIANT = { 0x3b82c4: 'house_blue', 0x2f855a: 'house_green' };
+
 export function house({ wall = 0xf6e7c8, roof = 0xd9623b, door = 0x7a4b2a, w = 4, d = 3.4, h = 2.4 } = {}) {
+  const a = asset(HOUSE_VARIANT[roof] ?? 'house_orange');
+  if (a) return a;
   const g = new THREE.Group();
   g.add(box(w, 0.25, d, 0xbfae8e, 0, 0.12, 0));
   g.add(box(w - 0.2, h, d - 0.2, wall, 0, 0.25 + h / 2, 0));
@@ -50,6 +71,8 @@ export function house({ wall = 0xf6e7c8, roof = 0xd9623b, door = 0x7a4b2a, w = 4
 }
 
 export function well() {
+  const a = asset('well');
+  if (a) return a;
   const g = new THREE.Group();
   g.add(cyl(0.95, 1.05, 0.9, 0x9ca3af, 0, 0.45, 0, 12));
   g.add(cyl(0.72, 0.72, 0.1, 0x3b82c4, 0, 0.82, 0, 12));
@@ -68,6 +91,15 @@ export function well() {
 
 export function fence(length, color = 0xc79a63) {
   const g = new THREE.Group();
+  const n = Math.max(1, Math.round(length / 1.3));
+  for (let i = 0; i < n; i++) {
+    const seg = asset('fence');
+    if (!seg) break;
+    seg.scale.x = length / n / 1.3;
+    seg.position.x = -length / 2 + (i + 0.5) * (length / n);
+    g.add(seg);
+  }
+  if (g.children.length) return g;
   const posts = Math.max(2, Math.round(length / 1.2) + 1);
   for (let i = 0; i < posts; i++) {
     const x = -length / 2 + (length * i) / (posts - 1);
@@ -78,7 +110,7 @@ export function fence(length, color = 0xc79a63) {
 }
 
 export function lamp() {
-  return group(
+  return asset('lamp') ?? group(
     cyl(0.07, 0.09, 2.4, 0x374151, 0, 1.2, 0, 6),
     box(0.4, 0.35, 0.4, 0xfde68a, 0, 2.5, 0),
     box(0.5, 0.08, 0.5, 0x374151, 0, 2.72, 0),
@@ -86,7 +118,7 @@ export function lamp() {
 }
 
 export function bench() {
-  return group(
+  return asset('bench') ?? group(
     box(1.6, 0.1, 0.5, 0xb7793f, 0, 0.5, 0),
     box(1.6, 0.4, 0.08, 0xb7793f, 0, 0.8, -0.22),
     box(0.1, 0.5, 0.45, 0x5b3b1f, -0.65, 0.25, 0),
@@ -95,7 +127,7 @@ export function bench() {
 }
 
 export function flowerPot(color = 0xf472b6) {
-  return group(cyl(0.25, 0.2, 0.35, 0xc2410c, 0, 0.18, 0, 8), ico(0.25, 0x4f9e45, 0, 0.45, 0), ico(0.1, color, 0.08, 0.62, 0.05));
+  return asset('flowerPot') ?? group(cyl(0.25, 0.2, 0.35, 0xc2410c, 0, 0.18, 0, 8), ico(0.25, 0x4f9e45, 0, 0.45, 0), ico(0.1, color, 0.08, 0.62, 0.05));
 }
 
 // Papan petunjuk dengan tulisan. Papan bertekstur (tidak di-bake).
@@ -129,6 +161,8 @@ export function signpost(text, { color = '#fff8e7', ink = '#17324d', arrow = 0, 
 
 // Lapak pasar dengan atap belang.
 export function stall({ awning = '#ef4444', counter = 0xb7793f, w = 3.2, d = 2 } = {}) {
+  const a = asset('stall', 1.12);
+  if (a) return a;
   const g = new THREE.Group();
   g.add(box(w, 0.9, 0.6, counter, 0, 0.45, d / 2 - 0.3));
   g.add(box(w, 0.08, 0.7, 0xe7c690, 0, 0.93, d / 2 - 0.3));
@@ -152,7 +186,7 @@ export function stall({ awning = '#ef4444', counter = 0xb7793f, w = 3.2, d = 2 }
 }
 
 export function crate(color = 0xb7793f) {
-  return group(box(0.7, 0.5, 0.5, color, 0, 0.25, 0), box(0.72, 0.06, 0.52, 0x8b5a2b, 0, 0.5, 0));
+  return asset('crate', 1.2) ?? group(box(0.7, 0.5, 0.5, color, 0, 0.25, 0), box(0.72, 0.06, 0.52, 0x8b5a2b, 0, 0.5, 0));
 }
 
 export function produce(color, n = 5) {
@@ -162,6 +196,8 @@ export function produce(color, n = 5) {
 }
 
 export function bridge(length, width = 2.2) {
+  const a = asset('bridge');
+  if (a) { a.scale.set(width / 2.2, 1, length / 9); return a; }
   const g = new THREE.Group();
   const planks = Math.round(length / 0.45);
   for (let i = 0; i < planks; i++) {
@@ -177,21 +213,23 @@ export function bridge(length, width = 2.2) {
 
 // Lengkung batu Gerbang Waktu. Portal bercahaya dikembalikan terpisah agar bisa dianimasikan.
 export function stoneArch() {
-  const g = new THREE.Group();
-  const stone = [0x9ca3af, 0x8b929a, 0xa8aeb5];
-  for (const side of [-1, 1]) {
-    for (let i = 0; i < 5; i++) g.add(box(0.9, 0.7, 0.9, stone[i % 3], side * 1.9, 0.35 + i * 0.7, 0));
+  const glb = asset('stoneArch', 1.3);
+  const g = glb ?? new THREE.Group();
+  if (!glb) {
+    const stone = [0x9ca3af, 0x8b929a, 0xa8aeb5];
+    for (const side of [-1, 1]) {
+      for (let i = 0; i < 5; i++) g.add(box(0.9, 0.7, 0.9, stone[i % 3], side * 1.9, 0.35 + i * 0.7, 0));
+    }
+    g.add(mesh(new THREE.TorusGeometry(1.9, 0.45, 5, 12, Math.PI), mat(0x9ca3af), 0, 3.5, 0));
+    g.add(box(5.4, 0.3, 1.6, 0x7c838b, 0, 0.15, 0));
   }
-  const arc = new THREE.TorusGeometry(1.9, 0.45, 5, 12, Math.PI);
-  const a = mesh(arc, mat(0x9ca3af), 0, 3.5, 0);
-  g.add(a);
-  g.add(box(5.4, 0.3, 1.6, 0x7c838b, 0, 0.15, 0));
+  // Ukuran celah portal (dalam satuan lokal sebelum skala aset).
+  const [pw, top] = glb ? [2.2, 3.3] : [3, 3.5];
   const portalMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false });
-  const portalGeo = new THREE.CircleGeometry(1.5, 32, 0, Math.PI);
-  const portal = new THREE.Mesh(portalGeo, portalMat);
-  portal.position.y = 3.5;
-  const lower = new THREE.Mesh(new THREE.PlaneGeometry(3, 3.2), portalMat);
-  lower.position.y = 1.9;
+  const portal = new THREE.Mesh(new THREE.CircleGeometry(pw / 2, 32, 0, Math.PI), portalMat);
+  portal.position.y = top;
+  const lower = new THREE.Mesh(new THREE.PlaneGeometry(pw, top - 0.2), portalMat);
+  lower.position.y = 0.2 + (top - 0.2) / 2;
   const glow = new THREE.Group();
   glow.add(portal, lower);
   g.add(glow);
@@ -199,6 +237,8 @@ export function stoneArch() {
 }
 
 export function recyclingCenter() {
+  const a = asset('recyclingCenter');
+  if (a) return a;
   const g = new THREE.Group();
   g.add(box(6, 0.25, 4.6, 0xbfae8e, 0, 0.12, 0));
   g.add(box(5.6, 2.8, 3.6, 0xdff3e4, 0, 1.65, -0.3));
@@ -212,7 +252,10 @@ export function recyclingCenter() {
   return g;
 }
 
-export function villager({ shirt = 0xf59e0b, skin = 0xe0a97a, hair = 0x3b2a1a, pants = 0x334155 } = {}) {
+// NPC: aset per tokoh (npc_busari, npc_darto, npc_udin) atau npc_merchant umum.
+export function villager({ shirt = 0xf59e0b, skin = 0xe0a97a, hair = 0x3b2a1a, pants = 0x334155, key = 'npc_merchant' } = {}) {
+  const a = asset(key) ?? asset('npc_merchant');
+  if (a) return a;
   const g = new THREE.Group();
   g.add(cyl(0.12, 0.12, 0.7, pants, -0.14, 0.35, 0, 6), cyl(0.12, 0.12, 0.7, pants, 0.14, 0.35, 0, 6));
   g.add(cyl(0.34, 0.4, 0.85, shirt, 0, 1.1, 0, 8));

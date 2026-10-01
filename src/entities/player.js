@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { box, cyl, ico, mesh, uniqueMat } from '../world/builders.js';
+import { cloneAsset } from '../core/assets.js';
 
 const WALK = 4.2;
 const RUN = 6.8;
@@ -24,6 +25,12 @@ export class Player {
     const body = new THREE.Group();
     this.body = body;
     g.add(body);
+    g.add(blobShadow());
+    const glb = cloneAsset('player');
+    if (glb) {
+      this.#buildFromAsset(glb);
+      return;
+    }
     this.legs = [-0.15, 0.15].map((x) => {
       const pivot = new THREE.Group();
       pivot.position.set(x, 0.72, 0);
@@ -82,15 +89,29 @@ export class Player {
     for (const part of [...this.legs, torso, head.children[0], basket.children[0]]) {
       part.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     }
-    const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.45, 16), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.18, depthWrite: false }));
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = 0.03;
-    g.add(shadow);
+  }
+
+  // Aset GLB: node leg_L/leg_R/arm_L/arm_R/head/basket (pivot sendi sudah dibetulkan pemuat).
+  #buildFromAsset(glb) {
+    glb.scale.setScalar(1.15);
+    this.body.add(glb);
+    const part = (n) => glb.getObjectByName(n) ?? new THREE.Group();
+    this.legs = [part('leg_L'), part('leg_R')];
+    this.arms = [part('arm_L'), part('arm_R')];
+    this.head = part('head');
+    this.basket = part('basket');
+    this.basketFill = null;
+    this.net = cloneAsset('net', { shadow: false }) ?? new THREE.Group();
+    this.net.position.set(0.22, 0.45, -0.42);
+    this.net.rotation.z = -0.35;
+    this.net.visible = false;
+    this.body.add(this.net);
   }
 
   setTools(tools) { this.net.visible = !!tools.jaring; }
 
   setBasketLevel(count, capacity) {
+    if (!this.basketFill) return;
     this.basketFill.visible = count > 0;
     this.basketFill.position.y = -0.18 + 0.38 * (count / capacity);
   }
@@ -170,4 +191,11 @@ export class Player {
     }
     return actual;
   }
+}
+
+function blobShadow() {
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.45, 16), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.18, depthWrite: false }));
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = 0.03;
+  return shadow;
 }

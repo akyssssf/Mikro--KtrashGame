@@ -10,7 +10,7 @@ import { buildRiver, distanceToCurve, riverColliders } from '../water.js';
 import { clamp, progressOf } from '../../systems/timeSim.js';
 import { makeItemModel } from '../items3d.js';
 import { bake, box, cyl, place, toon } from '../builders.js';
-import { bridge, bush, fence, house, rock, tree, villager } from '../props.js';
+import { asset, bridge, bush, fence, house, rock, tree, villager } from '../props.js';
 
 const FLOAT_SPEED = 0.9;
 
@@ -35,16 +35,25 @@ export default class SungaiArea extends Area {
     }
 
     // Pondok nelayan + rak jaring.
-    P.add(place(house({ wall: 0xc9a06a, roof: 0x8b5a2b, w: 3.4, d: 3, h: 2.1 }), d.hut.x, 0, d.hut.z, -0.3));
+    P.add(place(asset('fishingHut') ?? house({ wall: 0xc9a06a, roof: 0x8b5a2b, w: 3.4, d: 3, h: 2.1 }), d.hut.x, 0, d.hut.z, -0.3));
     C.addBox(d.hut.x, d.hut.z, 1.8, 1.6, -0.3);
     this.noGrass.push({ x: d.hut.x, z: d.hut.z, r: 2.8 });
-    const rack = new THREE.Group();
-    rack.add(box(0.12, 1.6, 0.12, 0x7a5230, -0.7, 0.8, 0), box(0.12, 1.6, 0.12, 0x7a5230, 0.7, 0.8, 0), box(1.6, 0.1, 0.1, 0x7a5230, 0, 1.55, 0));
+    let rack = asset('netRack', 0.75);
+    if (!rack) {
+      rack = new THREE.Group();
+      rack.add(box(0.12, 1.6, 0.12, 0x7a5230, -0.7, 0.8, 0), box(0.12, 1.6, 0.12, 0x7a5230, 0.7, 0.8, 0), box(1.6, 0.1, 0.1, 0x7a5230, 0, 1.55, 0));
+    }
     P.add(place(rack, d.netRack.x, 0, d.netRack.z));
     C.addBox(d.netRack.x, d.netRack.z, 0.85, 0.2);
-    this.rackNet = new THREE.Mesh(new THREE.ConeGeometry(0.45, 0.9, 8, 1, true), toon({ color: 0xf5f0e1, side: THREE.DoubleSide, transparent: true, opacity: 0.9 }));
-    this.rackNet.position.set(d.netRack.x, 1.05, d.netRack.z);
-    this.rackNet.rotation.x = Math.PI;
+    this.rackNet = asset('net');
+    if (this.rackNet) {
+      this.rackNet.position.set(d.netRack.x + 0.4, 0, d.netRack.z + 0.25);
+      this.rackNet.rotation.z = -0.15;
+    } else {
+      this.rackNet = new THREE.Mesh(new THREE.ConeGeometry(0.45, 0.9, 8, 1, true), toon({ color: 0xf5f0e1, side: THREE.DoubleSide, transparent: true, opacity: 0.9 }));
+      this.rackNet.position.set(d.netRack.x, 1.05, d.netRack.z);
+      this.rackNet.rotation.x = Math.PI;
+    }
     this.rackNet.visible = !this.progress.hasTool('jaring');
     this.root.add(this.rackNet);
     this.addInteractable({
@@ -60,7 +69,7 @@ export default class SungaiArea extends Area {
       },
     });
 
-    const fisher = villager({ shirt: 0xb45309, hair: 0x6b7280 });
+    const fisher = villager({ shirt: 0xb45309, hair: 0x6b7280, key: 'npc_udin' });
     place(fisher, d.fisher.x, 0, d.fisher.z, Math.PI * 0.9);
     P.add(fisher);
     C.addCircle(d.fisher.x, d.fisher.z, 0.45);
@@ -96,10 +105,13 @@ export default class SungaiArea extends Area {
       const x = p.x - tan.z * side * (d.river.width / 2 + 0.6);
       const z = p.z + tan.x * side * (d.river.width / 2 + 0.6);
       if (d.river.bridges.some((b) => Math.abs(z - b.z) < 1.8)) continue;
-      const reed = new THREE.Group();
+      let reed = asset('reeds', 0.7);
+      if (!reed) {
+        reed = new THREE.Group();
+        reed.add(cyl(0.03, 0.03, 1, 0x5a8f3a, 0, 0.5, 0, 4), cyl(0.06, 0.06, 0.25, 0x7a5230, 0, 1, 0, 5));
+      }
       reed.userData.batch = 'foliage';
-      reed.add(cyl(0.03, 0.03, 1, 0x5a8f3a, 0, 0.5, 0, 4), cyl(0.06, 0.06, 0.25, 0x7a5230, 0, 1, 0, 5));
-      P.add(place(reed, x, 0, z));
+      P.add(place(reed, x, 0, z, this.rand() * 6));
     }
 
     this.addPortal({ x: d.exit.x, z: d.exit.z, target: 'hub', label: t('areas.hub.name'), arrow: 1 });
@@ -113,15 +125,25 @@ export default class SungaiArea extends Area {
     const hw = d.size.hw;
     for (const [a, b] of [[w.fromX, g0], [g1, hw]]) {
       this.collision.addBox((a + b) / 2, w.z, (b - a) / 2, 0.75);
-      for (let x = a + 0.6; x < b; x += 1.1) {
-        this.props.add(place(rock(1 + this.rand() * 0.5, this.rand() > 0.5 ? 0x9aa0a6 : 0x8b929a), x, 0, w.z + (this.rand() - 0.5) * 0.4, this.rand() * 6));
+      const segments = Math.max(1, Math.round((b - a) / 2.3));
+      for (let i = 0; i < segments; i++) {
+        const x = a + (i + 0.5) * ((b - a) / segments);
+        const seg = asset('rockWall', 1.15);
+        if (seg) {
+          seg.scale.x *= (b - a) / segments / 2.6;
+          this.props.add(place(seg, x, 0, w.z + (this.rand() - 0.5) * 0.2, i % 2 ? Math.PI : 0));
+        } else {
+          this.props.add(place(rock(1.3, 0x9aa0a6), x, 0, w.z, this.rand() * 6));
+        }
       }
       this.noGrass.push({ x: (a + b) / 2, z: w.z, hw: (b - a) / 2, hd: 1 });
     }
 
     // Tumpukan daun + kulit pisang yang menutup celah.
     this.pile = new THREE.Group();
-    for (let i = 0; i < 14; i++) {
+    const pileAsset = asset('leafPile', 1.05);
+    if (pileAsset) this.pile.add(pileAsset);
+    for (let i = 0; i < (pileAsset ? 0 : 14); i++) {
       const model = makeItemModel(i % 3 ? 'leaf' : 'banana', 0.55 + this.rand() * 0.25);
       model.position.set((this.rand() - 0.5) * 2.2, i * 0.07, (this.rand() - 0.5) * 1.2);
       model.rotation.set(this.rand() * 0.6, this.rand() * 6, this.rand() * 0.6);
@@ -130,7 +152,7 @@ export default class SungaiArea extends Area {
     const mound = new THREE.Mesh(new THREE.SphereGeometry(1.2, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), toon({ color: 0x6f7d2f, flatShading: true }));
     mound.scale.set(1.2, 0.55, 0.8);
     mound.castShadow = true;
-    this.pile.add(mound);
+    if (!pileAsset) this.pile.add(mound);
     // Satu mesh gabungan; warnanya dikusamkan lewat material (vertex color × warna material).
     this.pileMat = toon({ vertexColors: true, roughness: 0.8, flatShading: true });
     bake(this.pile, { batchMaterials: { static: this.pileMat } });

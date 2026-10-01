@@ -80,13 +80,20 @@ export function bake(root, { batchMaterials = {} } = {}) {
     const shadow = o.castShadow ? 'cast' : 'nocast';
     const key = `${batch}|${shadow}`;
     let g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+    // Warna vertex bawaan (mis. dari aset GLB) dikalikan warna material.
+    const vc = m.vertexColors ? g.attributes.color : null;
     for (const name of Object.keys(g.attributes)) if (name !== 'position' && name !== 'normal') g.deleteAttribute(name);
     g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
     const count = g.attributes.position.count;
     const colors = new Float32Array(count * 3);
     const c = m.color;
     const e = m.emissive ?? { r: 0, g: 0, b: 0 };
-    for (let i = 0; i < count; i++) colors.set([c.r + e.r * 0.5, c.g + e.g * 0.5, c.b + e.b * 0.5], i * 3);
+    for (let i = 0; i < count; i++) {
+      const vr = vc ? vc.getX(i) : 1;
+      const vg = vc ? vc.getY(i) : 1;
+      const vb = vc ? vc.getZ(i) : 1;
+      colors.set([c.r * vr + e.r * 0.5, c.g * vg + e.g * 0.5, c.b * vb + e.b * 0.5], i * 3);
+    }
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
     if (!buckets.has(key)) buckets.set(key, { batch, shadow, geos: [] });
     buckets.get(key).geos.push(g);

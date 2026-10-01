@@ -7,13 +7,14 @@ import { ITEM_TYPES } from '../../data/items.js';
 import { t } from '../../data/dialogs.id.js';
 import { flatPath } from '../diorama.js';
 import { box, cyl, mat, mesh, place } from '../builders.js';
-import { bush, crate, fence, lamp, produce, rock, stall, tree, villager } from '../props.js';
+import { asset, bush, crate, fence, lamp, produce, rock, stall, tree, villager } from '../props.js';
 import { clamp, progressOf } from '../../systems/timeSim.js';
+import { hasAsset } from '../../core/assets.js';
 
 const PROOF_YEARS = 10;
 const MERCHANTS = {
-  busari: { shirt: 0x1a7f3d, skin: 0xf3c9a0, hair: 0x3b2a1a },
-  darto: { shirt: 0x2563eb, skin: 0xd9a578, hair: 0x1f2937 },
+  busari: { shirt: 0x1a7f3d, skin: 0xf3c9a0, hair: 0x3b2a1a, key: 'npc_busari' },
+  darto: { shirt: 0x2563eb, skin: 0xd9a578, hair: 0x1f2937, key: 'npc_darto' },
   buah: { shirt: 0xf59e0b }, roti: { shirt: 0xdb2777, hair: 0x7c2d12 }, ikan: { shirt: 0x0f766e }, kue: { shirt: 0x7e22ce },
 };
 
@@ -29,7 +30,10 @@ export default class PasarArea extends Area {
     for (const s of d.stalls) {
       const north = s.facing === 'north';
       const g = stall({ awning: s.awning });
-      if (s.goods === 'bags') {
+      if (g.userData.asset) {
+        // Lapak dari aset: dagangan cukup keranjang di depan lapak.
+        g.add(place(asset('produceBasket') ?? produce(s.goods, 6), 0.9, 0, 1.45));
+      } else if (s.goods === 'bags') {
         for (let i = 0; i < 4; i++) g.add(box(0.45, 0.5, 0.12, [0xe9d8b4, 0x1a7f3d, 0xf08a2c, 0xe9d8b4][i], -1 + i * 0.65, 1.22, 0.7));
       } else {
         const goods = produce(s.goods, 6);
@@ -78,15 +82,26 @@ export default class PasarArea extends Area {
 
   // Tali bendera warna-warni di atas jalan.
   #bunting() {
+    const from = -18.6;
+    const to = 19;
+    if (hasAsset('bunting')) {
+      const n = 6;
+      const span = (to - from) / n;
+      for (let i = 0; i < n; i++) {
+        const seg = asset('bunting');
+        seg.scale.x = span / 6.56;
+        this.props.add(place(seg, from + (i + 0.5) * span, 1.25, 0.8));
+      }
+    }
     const colors = [0xe2483d, 0xf5b82e, 0x1a7f3d, 0x2563eb, 0xf08a2c];
     const g = new THREE.Group();
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < (hasAsset('bunting') ? 0 : 30); i++) {
       const x = -18 + i * 1.25;
       const flag = mesh(new THREE.ConeGeometry(0.25, 0.5, 3), mat(colors[i % colors.length]), x, 3.2 - Math.sin(((i % 10) / 10) * Math.PI) * 0.4, 0.8);
       flag.rotation.x = Math.PI;
       g.add(flag);
     }
-    for (const x of [-18.6, 19]) g.add(cyl(0.07, 0.07, 3.4, 0x7a5230, x, 1.7, 0.8, 6));
+    for (const x of [from, to]) g.add(cyl(0.07, 0.07, 3.4, 0x7a5230, x, 1.7, 0.8, 6));
     this.props.add(g);
     this.collision.addCircle(-18.6, 0.8, 0.15);
     this.collision.addCircle(19, 0.8, 0.15);
@@ -133,7 +148,9 @@ export default class PasarArea extends Area {
     P.add(box(d.length, 0.06, 0.9, 0x4b5563, d.x, 0.03, d.z));
     P.add(box(d.length, 0.12, 0.1, 0x9ca3af, d.x, 0.06, d.z - 0.5), box(d.length, 0.12, 0.1, 0x9ca3af, d.x, 0.06, d.z + 0.5));
     this.grate = new THREE.Group();
-    for (let i = 0; i < 7; i++) this.grate.add(box(0.08, 0.08, 0.95, 0x374151, -0.9 + i * 0.3, 0.12, 0));
+    const grateAsset = asset('drainGrate', 1.2);
+    if (grateAsset) this.grate.add(grateAsset);
+    else for (let i = 0; i < 7; i++) this.grate.add(box(0.08, 0.08, 0.95, 0x374151, -0.9 + i * 0.3, 0.12, 0));
     this.grate.position.set(d.x, 0, d.z);
     this.root.add(this.grate);
     this.noGrass.push({ x: d.x, z: d.z, hw: d.length / 2 + 0.3, hd: 0.9 });

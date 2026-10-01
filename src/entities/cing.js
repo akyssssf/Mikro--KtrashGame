@@ -1,10 +1,15 @@
 // Cing, cacing tanah pemandu. Warna dan ekspresinya mengikuti kesehatan tanah.
 import * as THREE from 'three';
 import { canvasTexture, toon } from '../world/builders.js';
+import { cloneAsset } from '../core/assets.js';
 
 const HAPPY = new THREE.Color(0xf28ba8);
 const TIRED = new THREE.Color(0xb9a3a6);
 const SEGMENTS = 6;
+const ASSET_MOODS = { ceria: 'cing_happy', biasa: 'cing_neutral', lesu: 'cing_tired' };
+const ASSET_SCALE = 0.55;
+const WHITE = new THREE.Color(0xffffff);
+const FADED = new THREE.Color(0xc9bfc2);
 
 export class Cing {
   constructor() {
@@ -16,9 +21,34 @@ export class Cing {
     this.phase = 0;
     this.heading = 0;
     this.reducedMotion = false;
+    this.segments = [];
+    this.eyes = [];
+    const variants = Object.fromEntries(Object.entries(ASSET_MOODS).map(([mood, key]) => [mood, cloneAsset(key, { uniqueMaterials: true })]));
+    if (Object.values(variants).every(Boolean)) this.#buildFromAssets(variants);
+    else this.#buildProcedural();
+    this.#buildMarker();
+    this.setMood('biasa');
+  }
+
+  // Tiga aset ekspresi (ceria/biasa/lesu); hanya satu yang tampil.
+  #buildFromAssets(variants) {
+    this.variants = variants;
+    this.body = new THREE.Group();
+    for (const [mood, obj] of Object.entries(variants)) {
+      obj.scale.setScalar(ASSET_SCALE);
+      obj.userData.head = obj.getObjectByName(`head_${ASSET_MOODS[mood].split('_')[1]}`);
+      this.body.add(obj);
+    }
+    this.materials = [];
+    this.body.traverse((o) => { if (o.isMesh) this.materials.push(o.material); });
+    this.group.add(this.body);
+    this.markerY = 1.55;
+  }
+
+  #buildProcedural() {
+    this.markerY = 1.45;
     this.bodyMat = toon({ color: HAPPY.clone(), roughness: 0.45 });
     this.bandMat = toon({ color: 0xe46f93, roughness: 0.5 });
-    this.segments = [];
     for (let i = 0; i < SEGMENTS; i++) {
       const r = 0.26 - i * 0.025;
       const s = new THREE.Mesh(new THREE.SphereGeometry(r, 14, 10), i === 2 ? this.bandMat : this.bodyMat);
@@ -62,7 +92,9 @@ export class Cing {
     leaf.rotation.z = 0.3;
     this.head.add(leaf);
     this.group.add(this.head);
+  }
 
+  #buildMarker() {
     this.marker = new THREE.Sprite(new THREE.SpriteMaterial({
       map: canvasTexture(64, 64, (ctx) => {
         ctx.fillStyle = '#f08a2c';
@@ -81,24 +113,24 @@ export class Cing {
       depthTest: false,
     }));
     this.marker.scale.setScalar(0.55);
-    this.marker.position.y = 1.45;
+    this.marker.position.y = this.markerY;
     this.marker.renderOrder = 5;
     this.group.add(this.marker);
-    this.setMood('biasa');
   }
 
   setAlert(on) { this.marker.visible = on; }
 
   setMood(mood) {
     this.mood = mood;
-    for (const [k, m] of Object.entries(this.mouths)) m.visible = k === mood;
+    for (const [k, m] of Object.entries(this.variants ?? this.mouths)) m.visible = k === mood;
   }
 
   // Warna berubah halus mengikuti kesehatan tanah yang ditampilkan.
   setHealth(h) {
     this.health = h;
     const k = THREE.MathUtils.clamp(h / 100, 0, 1);
-    this.bodyMat.color.copy(TIRED).lerp(HAPPY, k);
+    if (this.variants) for (const m of this.materials) m.color.copy(FADED).lerp(WHITE, k);
+    else this.bodyMat.color.copy(TIRED).lerp(HAPPY, k);
   }
 
   update(dt, time, player) {
@@ -127,17 +159,26 @@ export class Cing {
     }
     this.group.rotation.y = this.heading;
     this.phase += dt * (3 + speed * 1.5) * energy;
+    if (this.variants) {
+      // Aset utuh: animasi liuk lewat mengembang-mengempis + kepala bergoyang.
+      const squash = Math.sin(this.phase * 1.4) * 0.05 * motion * energy;
+      this.body.scale.set(1 - squash * 0.5, 1 + squash, 1 - squash * 0.5);
+      this.body.rotation.z = Math.sin(this.phase * 0.7) * 0.05 * motion;
+      const head = this.variants[this.mood]?.userData.head;
+      if (head) head.rotation.z = Math.sin(this.phase * 0.5) * 0.1 * motion * energy;
+    }
     this.segments.forEach((s, i) => {
       const w = Math.sin(this.phase - i * 0.9) * 0.12 * motion;
       s.position.x = w * (i / SEGMENTS + 0.3);
       s.position.y = s.geometry.parameters.radius + Math.max(0, Math.sin(this.phase * 0.5 - i * 0.7)) * 0.06 * motion * energy;
     });
+    this.marker.position.y = this.markerY + Math.sin(time * 3) * 0.08 * motion;
+    if (this.variants) return;
     const droop = this.mood === 'lesu' ? -0.12 : 0;
     this.head.position.y = 0.62 + Math.sin(this.phase * 0.8) * 0.04 * motion + droop;
     this.head.rotation.z = Math.sin(this.phase * 0.5) * 0.12 * motion * energy;
     this.head.rotation.x = this.mood === 'lesu' ? 0.25 : 0;
     const blink = (time % 4) < 0.12 ? 0.15 : 1;
     this.eyes.forEach((e) => { e.scale.y = blink; });
-    this.marker.position.y = 1.45 + Math.sin(time * 3) * 0.08 * motion;
   }
 }

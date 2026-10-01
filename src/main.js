@@ -1,6 +1,7 @@
 import './style.css';
 import * as THREE from 'three';
 import { createRenderContext } from './core/renderer.js';
+import { loadAssets } from './core/assets.js';
 import { InputManager } from './core/input.js';
 import { CameraRig } from './core/camera.js';
 import { StateMachine } from './core/state.js';
@@ -203,13 +204,9 @@ class Game {
   }
 
   // ---------------- alur ----------------
-  async boot() {
-    const loading = h('div', { id: 'loading' }, t('game.loading'));
-    document.body.append(loading);
+  // Dipanggil setelah font dan aset 3D siap.
+  boot(loading) {
     this.fsm.set('loading');
-    try {
-      await Promise.race([document.fonts.load('800 58px "Baloo 2"'), new Promise((r) => setTimeout(r, 2000))]);
-    } catch { /* font opsional */ }
     this.hasSave = this.progress.load();
     this.resumeArea = this.progress.data.area;
     this.areas.enter('hub');
@@ -520,6 +517,17 @@ class Game {
   }
 }
 
-const game = new Game();
-game.boot();
-if (import.meta.env.DEV) window.__game = game;
+// Font dan aset 3D dimuat dulu, baru dunia dibangun.
+async function start() {
+  const label = h('span', {}, t('game.loading'));
+  const loading = h('div', { id: 'loading' }, label);
+  document.body.append(loading);
+  try {
+    await Promise.race([document.fonts.load('800 58px "Baloo 2"'), new Promise((r) => setTimeout(r, 2000))]);
+  } catch { /* font opsional */ }
+  await loadAssets((k) => { label.textContent = `${t('game.loading')} ${Math.round(k * 100)}%`; });
+  const game = new Game();
+  game.boot(loading);
+  if (import.meta.env.DEV) window.__game = game;
+}
+start();

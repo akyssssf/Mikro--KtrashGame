@@ -1,6 +1,7 @@
 // Laut di sekeliling pulau + pulau-pulau batu di kejauhan (supaya horizon terlihat hidup).
 import * as THREE from 'three';
 import { bake, canvasTexture, cone, ico, place, rng } from './builders.js';
+import { cloneAsset } from '../core/assets.js';
 
 export const OCEAN_Y = -1.1;
 export const HORIZON = 0xc6efff;
@@ -34,6 +35,12 @@ export function createOcean(scene) {
   for (let i = 0; i < 14; i++) {
     const a = (i / 14) * Math.PI * 2 + rand() * 0.3;
     const d = 85 + rand() * 90;
+    const stack = cloneAsset(`seaStack_${(i % 3) + 1}`, { shadow: false });
+    if (stack) {
+      stack.scale.setScalar(0.7 + rand() * 0.6);
+      far.add(place(stack, Math.cos(a) * d, OCEAN_Y - 0.3, Math.sin(a) * d, rand() * 6));
+      continue;
+    }
     const s = 5 + rand() * 9;
     const isle = new THREE.Group();
     isle.add(cone(1, 2.2, 0x7d8fb3, 0, 1.1, 0, 6));

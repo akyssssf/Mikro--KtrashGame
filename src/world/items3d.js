@@ -2,6 +2,7 @@
 // supaya bisa dikusamkan/dipudarkan saat waktu dimajukan.
 import * as THREE from 'three';
 import { toon } from './builders.js';
+import { cloneAsset } from '../core/assets.js';
 
 const M = (color, opts = {}) => toon({ color, ...opts });
 const clear = (op) => ({ transparent: true, opacity: op, roughness: 0.25 });
@@ -114,10 +115,18 @@ const BUILDERS = {
 };
 
 // Model di atas tanah (dasar y = 0), skala demo × scale.
+// Aset GLB berukuran nyata (sedikit dibesarkan); skala 0.42 setara ×GLB_SCALE.
+const GLB_SCALE = 0.6 / 0.42;
+
 export function makeItemModel(model, scale = 0.42) {
+  const asset = cloneAsset(model, { uniqueMaterials: true, shadow: false });
+  if (asset) return wrapModel(asset, scale * GLB_SCALE);
   const build = BUILDERS[model];
   if (!build) throw new Error(`Model sampah tidak dikenal: ${model}`);
-  const inner = build();
+  return wrapModel(build(), scale);
+}
+
+function wrapModel(inner, scale) {
   const b = new THREE.Box3().setFromObject(inner);
   inner.position.y = -b.min.y;
   const outer = new THREE.Group();
