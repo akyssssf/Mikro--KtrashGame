@@ -17,8 +17,19 @@ Kita lanjutkan proyek ini. Batch 0–5 (lembar gaya, karakter, sampah, desa, sun
 - Kedalaman dua lapis: **SD** cukup paham lewat ikon, warna, dan aksi. **SMA** bisa membuka "Fakta Lanjut" (bahan kimia, dampak kesehatan, ekonomi sirkular).
 - **Tidak ada game over.** Kesalahan memberi konsekuensi yang terlihat (tanah makin kusam, Cing sedih), bukan hukuman.
 
+### Dunia baru: lembah "dari gunung ke laut" (menggantikan konsep pulau)
+Konsep pulau-pulau di tengah laut **diganti**. Tema game ini tanah, jadi dunia sekarang berupa **Desa Lestari di lembah**:
+- **Utara, barat, timur:** bukit dan **siluet gunung** di kejauhan. Tepi area dibatasi berlapis supaya terasa alami, bukan tembok:
+  1. pagar bambu, semak, dan pohon rapat;
+  2. tanah yang menanjak jadi lereng bukit;
+  3. sawah terasering dan atap desa lain di lereng;
+  4. gunung berkabut tipis di latar paling jauh.
+- **Sungai** mengalir dari gunung, melewati desa, lalu **bermuara di laut di selatan**. Inilah benang merah ceritanya: sampah yang dibuang di desa terbawa sungai sampai ke pantai.
+- **Selatan:** pantai dan laut. Hanya di sinilah laut terlihat. Laut menjadi batas alami sekaligus wilayah jelajah dan **side quest**.
+- Antar area dihubungkan **jalan desa dan gapura**, bukan menyeberang laut. Game memakai transisi layar saat melewati gapura.
+
 ### Yang sudah ada di game (jangan didesain ulang dari nol)
-- **Desa Lestari (hub)**: pulau ±48 × 40 m, sumur, Tempat Daur Ulang, **Gerbang Waktu** (lengkung batu), papan petunjuk ke area lain.
+- **Desa Lestari (hub)**: area ±48 × 40 m, sumur, Tempat Daur Ulang, **Gerbang Waktu** (lengkung batu), papan petunjuk ke area lain. Saat ini masih berbentuk pulau berlaut; **tepinya akan diganti menjadi lereng lembah** sesuai konsep baru.
 - **Sungai (kode 1 PET)**: ambil jaring di pondok Pak Udin, pungut 6 botol PET (sebagian di air), pasang Lensa Waktu untuk membuka jalan yang tertutup daun.
 - **Pasar (kode 4 LDPE)**: kumpulkan 5 kresek, tukar dengan tas kain di lapak Bu Sari, bersihkan saluran yang tersumbat.
 - Sistem yang sudah jalan dan bisa dipakai di semua map:
@@ -35,7 +46,7 @@ Desain **semua map** (konten + gameplay), lalu buat aset 3D-nya per batch dengan
 ---
 
 ### TAHAP A — Peta besar & alur (kerjakan dulu, tunggu persetujuan)
-1. **Peta dunia**: hub di tengah, 7 area mengelilinginya (1 area per kode plastik), dan urutan buka yang disarankan. Gambar sebagai ilustrasi peta pulau-pulau gaya buku cerita (dilihat dari atas, gaya sama dengan lembar gaya).
+1. **Peta dunia**: lembah dengan hub di tengah, 7 area di sekelilingnya (1 area per kode plastik) yang dihubungkan jalan desa dan gapura, alur sungai dari gunung (utara) sampai muara, dan **Pantai** di selatan. Sertakan urutan buka yang disarankan. Gambar sebagai ilustrasi peta gaya buku cerita (dilihat dari atas, gaya sama dengan lembar gaya).
 2. **Kurva belajar**: urutan area dari yang paling mudah dipahami (botol, kresek) ke yang paling sulit (PVC beracun saat dibakar, plastik "Other" multilapis), dan alat yang didapat di tiap area yang membuka area berikutnya.
 3. **"Paspor Penjaga Tanah"**: tiap area yang selesai memberi **cap/stempel** di paspor (desain 7 cap + sampul). Ini juga jembatan ke wisata nyata: pemandu bisa memberi **kode pos wisata** (4 huruf) yang membuka "fakta bonus" area itu. Desain tampilannya.
 
@@ -51,6 +62,20 @@ Rancangan awalku (boleh kamu perbaiki dan beri alasan):
 | 6 | Bengkel | 3 PVC | Pipa & kabel bekas, asap pembakaran | **Hentikan pembakaran sampah** (asap beracun), kumpulkan PVC ke penampung khusus | Sarung tangan |
 | 7 | Gudang/Bank Sampah | 7 Other | Galon, sachet, kemasan multilapis | **Bank sampah**: timbang & tabung sampah, buat ecobrick dari sachet | Buku tabungan |
 | ★ | Festival Desa | semua | Final | Gerbang Waktu final + desa 100 tahun lagi + pesta | — |
+| 🌊 | **Pantai & Muara** | semua | Jelajah bebas + side quest | Lihat bagian "Pantai & side quest" di bawah | Perahu kecil |
+
+Sungai (kode 1) sebaiknya ditempatkan di hulu atau tengah alur sungai, supaya botol yang lolos di sana bisa "ditemukan lagi" di Pantai.
+
+#### Pantai & side quest (wilayah jelajah)
+Pantai **bukan area wajib**. Pemain bisa ke sana kapan saja setelah menyelesaikan Sungai, untuk menjelajah dan mengerjakan side quest pendek (1–3 menit, boleh dikerjakan dalam urutan apa pun). Desain juga side quest-nya. Usulanku:
+- **Bersih pantai:** pungut sampah yang terdampar, yang sudah tercampur semua kode. Ini latihan mengenali 7 kode.
+- **Selamatkan penyu:** penyu terjerat kresek atau jaring bekas (*ghost net*). Lepaskan dengan pencapit.
+- **Botol dari hulu:** temukan botol yang ternyata berasal dari Sungai di desa. Botol ini membuktikan sampah terbawa jauh.
+- **Perahu kecil:** dayung ke pulau-pulau batu kecil (pakai aset `seaStack` dan `islandCliff` dari Batch 5) untuk mencari "kerang fakta", yaitu koleksi fakta laut dan mikroplastik di laut.
+- **Muara:** pasang jaring penghadang sampah di muara sungai supaya sampah tidak lagi masuk laut. Ini sambungan dari cerita Sungai.
+- **Pengamat ombak:** di senja hari, Lensa Waktu menunjukkan pasir pantai 50 tahun lagi yang berkilau mikroplastik, kalau sampahnya tidak dibersihkan.
+
+Side quest memberi **stiker paspor** (berbeda dari cap area) dan item kosmetik kecil untuk pemain, misalnya topi atau warna keranjang. Tidak ada yang wajib untuk menamatkan game.
 
 ---
 
@@ -90,16 +115,20 @@ Setelah lembar desain disetujui, buat asetnya dengan urutan ini. Setiap batch se
 - **Batch 11 — Bengkel (PVC)**: bengkel beratap seng, tumpukan pipa & kabel, tong pembakaran dengan asap (asap sebagai node terpisah untuk animasi), penampung limbah khusus berlabel, alat bengkel.
 - **Batch 12 — Bank Sampah (Other)**: gudang bank sampah, timbangan besar, karung berlabel, rak ecobrick (botol berisi sachet), tumpukan sachet, mesin press.
 - **Batch 13 — Festival & paspor**: panggung kecil, umbul-umbul, lampion, kembang api sederhana (node terpisah), papan "Desa Lestari" besar, serta 7 model cap paspor (ikon 3D sederhana per kode plastik).
-- **Batch 14 — Sampah tambahan** (tiap item punya segitiga kode di label, seperti Batch 2): `cableBundle` (PVC), `pipeElbow` (PVC), `sachet` (7 Other, multilapis), `toothpasteTube` (7), `foamCup` (6), `foamTray` (6), `yogurtCup` (5 PP), `bottleCap` (5 PP), `detergentBottle` (2 HDPE), `milkJug` (2 HDPE), `snackWrap` (7), `straw` (5 PP).
+- **Batch 14 — Batas lembah (menggantikan tepi pulau)**: lereng bukit modular (lurus, sudut dalam, sudut luar) dengan rumput di atas, pagar bambu (segmen 2 m), semak rapat, deretan pohon rapat (modul 6 m), **gapura desa** (dengan papan kosong), sawah terasering (modul petak), saluran irigasi kecil, latar **siluet gunung** (2–3 lapis, sangat ringan), dan rumah desa jauh sederhana (≤ 200 segitiga).
+- **Batch 15 — Pantai & muara**: pasir pantai modular, dermaga kayu, perahu dayung kecil (node `oar_L`/`oar_R` untuk animasi), pondok penjaga pantai, penyu (node kepala, sirip), jaring bekas (*ghost net*), karang dan kerang (beberapa varian), pohon kelapa miring, jaring penghadang sampah di muara (dengan pelampung), dan papan info pantai kosong. Pakai ulang `seaStack`, `islandCliff`, dan `cloud` dari Batch 5 untuk pulau batu di laut.
+- **Batch 16 — Sampah tambahan** (tiap item punya segitiga kode di label, seperti Batch 2): `cableBundle` (PVC), `pipeElbow` (PVC), `sachet` (7 Other, multilapis), `toothpasteTube` (7), `foamCup` (6), `foamTray` (6), `yogurtCup` (5 PP), `bottleCap` (5 PP), `detergentBottle` (2 HDPE), `milkJug` (2 HDPE), `snackWrap` (7), `straw` (5 PP).
 
 ### Aturan tambahan untuk map
-- Tiap pulau area mengikuti bentuk pulau persegi membulat ±48 × 40 m seperti hub, dengan `islandCliff` di tepinya. Dermaga atau jembatan menuju hub selalu ada di sisi **selatan** (+Z).
+- Tiap area berukuran ±48 × 40 m dan **dibatasi lereng lembah** (Batch 14), bukan laut. Pintu keluar berupa **gapura** di tepi area yang mengarah ke area tetangga sesuai peta dunia.
+- **Laut hanya ada di Pantai & Muara** (selatan). Area lain boleh melihat sungai, tapi tidak melihat laut.
 - Jalur utama lebar ≥ 3 m (supaya joystick di HP nyaman). Benda yang bisa dipungut jangan diletakkan di balik objek tinggi.
 - Satu landmark tinggi (≥ 6 m) per area supaya pemain tidak tersesat.
 - Hindari teks yang tertanam di model (papan dibiarkan kosong). Teks ditulis oleh game supaya bisa diterjemahkan.
 - Warna dasar rumput, tanah, dan pohon tetap terang, karena game yang mengusamkannya sesuai kesehatan tanah.
+- Latar jauh (gunung, sawah, desa lain) harus sangat ringan, karena game berjalan di HP.
 
-Mulai dari **TAHAP A**. Tunjukkan peta dunia, kurva belajar, dan desain Paspor Penjaga Tanah, lalu tunggu persetujuanku.
+Mulai dari **TAHAP A**. Tunjukkan peta dunia lembah (gunung → desa → sungai → pantai), kurva belajar, desain Paspor Penjaga Tanah, dan daftar side quest Pantai, lalu tunggu persetujuanku.
 
 ---
 
